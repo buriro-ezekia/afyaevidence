@@ -21,7 +21,7 @@ PRAGMA journal_mode=WAL;
 CREATE TABLE IF NOT EXISTS runs (
   run_id TEXT PRIMARY KEY, receipt_path TEXT NOT NULL UNIQUE,
   receipt_sha256 TEXT NOT NULL, snapshot_id TEXT NOT NULL,
-  candidate_json TEXT NOT NULL, created_at TEXT NOT NULL,
+  candidate_json TEXT NOT NULL, evidence_json TEXT NOT NULL, created_at TEXT NOT NULL,
   revision INTEGER NOT NULL DEFAULT 0, disposition TEXT
 );
 CREATE TABLE IF NOT EXISTS reviews (
@@ -78,14 +78,15 @@ def import_receipt(db, receipt: Path, *, root: Path):
     if not isinstance(run_id, str) or not ID.fullmatch(run_id):
         run_id = "run_" + checksum[:24]
     candidate = json.dumps(brief, sort_keys=True, separators=(",", ":"))
+    evidence = json.dumps(doc["evidence_bundle"], sort_keys=True, separators=(",", ":"))
     db.execute("BEGIN IMMEDIATE")
     try:
         existing = db.execute("SELECT receipt_sha256 FROM runs WHERE run_id=?", (run_id,)).fetchone()
         if existing and existing[0] != checksum:
             raise ValueError("immutable_run_conflict")
         db.execute("""INSERT OR IGNORE INTO runs
-            (run_id,receipt_path,receipt_sha256,snapshot_id,candidate_json,created_at)
-            VALUES(?,?,?,?,?,?)""", (run_id,str(path),checksum,snapshot,candidate,utc()))
+            (run_id,receipt_path,receipt_sha256,snapshot_id,candidate_json,evidence_json,created_at)
+            VALUES(?,?,?,?,?,?,?)""", (run_id,str(path),checksum,snapshot,candidate,evidence,utc()))
         db.execute("COMMIT")
     except BaseException:
         db.execute("ROLLBACK")
@@ -136,12 +137,12 @@ def review(db, *, run_id, expected_revision, event_key, reviewer, disposition, r
 
 
 def get_run(db, run_id):
-    row = db.execute("SELECT run_id,snapshot_id,receipt_sha256,candidate_json,revision,disposition "
+    row = db.execute("SELECT run_id,snapshot_id,receipt_sha256,candidate_json,evidence_json,revision,disposition "
                      "FROM runs WHERE run_id=?", (run_id,)).fetchone()
     if not row:
         raise ValueError("unknown_run")
     return dict(run_id=row[0],snapshot_id=row[1],receipt_sha256=row[2],
-                candidate=json.loads(row[3]),revision=row[4],disposition=row[5])
+                candidate=json.loads(row[3]),evidence=json.loads(row[4]),revision=row[5],disposition=row[6])
 
 
 PAGE = """<!doctype html><html lang="en"><meta charset="utf-8">
