@@ -59,7 +59,9 @@ class ReviewTests(unittest.TestCase):
 
     def test_prevent_outside_import(self):
         external = self.root.parent / "non_runtime_receipt.json"
-        with self.assertRaises(ValueError):
+        external.write_text(self.receipt.read_text())
+        self.addCleanup(lambda: external.unlink(missing_ok=True))
+        with self.assertRaisesRegex(ValueError, "receipt_outside_runtime"):
             import_receipt(self.db, external, root=self.root)
 
 
