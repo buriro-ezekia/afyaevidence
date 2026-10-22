@@ -15,6 +15,7 @@ from pathlib import Path
 import re
 import sqlite3
 from urllib.parse import urlsplit
+from .review_page import PAGE
 
 SCHEMA = """
 PRAGMA journal_mode=WAL;
@@ -141,46 +142,12 @@ def get_run(db, run_id):
                      "FROM runs WHERE run_id=?", (run_id,)).fetchone()
     if not row:
         raise ValueError("unknown_run")
+    history = db.execute("SELECT revision,reviewer,disposition,reason,at FROM reviews WHERE run_id=? ORDER BY revision", (run_id,)).fetchall()
     return dict(run_id=row[0],snapshot_id=row[1],receipt_sha256=row[2],
-                candidate=json.loads(row[3]),evidence=json.loads(row[4]),revision=row[5],disposition=row[6])
+                candidate=json.loads(row[3]),evidence=json.loads(row[4]),revision=row[5],disposition=row[6],
+                history=[dict(revision=h[0],reviewer=h[1],disposition=h[2],reason=h[3],at=h[4]) for h in history])
 
 
-PAGE = """<!doctype html><html lang="en"><meta charset="utf-8">
-<title>AfyaEvidence local review</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{font:16px system-ui;max-width:850px;margin:3rem auto;padding:1rem}
-textarea,input,select,button{display:block;margin:.7rem 0;padding:.6rem;max-width:100%;width:100%;box-sizing:border-box}
-pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef2f6;padding:1rem}
-small{color:#555}</style>
-<h1>AfyaEvidence — human review</h1>
-<p>Local evidence review only. This does not approve a clinical decision or change source data.</p>
-<label>Review bearer token (held in this tab only)<input type="password" id="token"></label>
-<label>Run ID<input id="run"></label><button onclick="load()">Load candidate</button>
-<pre id="candidate">No run loaded.</pre>
-<label>Disposition<select id="decision"><option value="accept">Accept for review record</option>
-<option value="request_more_evidence">Request more evidence</option><option value="reject">Reject</option></select></label>
-<label>Reason (minimum 10 characters)<textarea id="reason"></textarea></label>
-<button onclick="submitReview()">Record disposition</button><pre id="status"></pre>
-<small>Token is not stored or transmitted except in requests to this loopback service.</small>
-<script>
-let revision=null;
-async function api(path,method='GET',body=null){
-const response=await fetch(path,{method,headers:{'Authorization':'Bearer '+document.getElementById('token').value,
-'Content-Type':'application/json'},body:body?JSON.stringify(body):null});
-const result=await response.json();if(!response.ok)throw Error(result.error||response.status);return result;
-}
-async function load(){try{
-const r=await api('/api/runs/'+encodeURIComponent(document.getElementById('run').value));
-revision=r.revision;document.getElementById('candidate').textContent=JSON.stringify(r,null,2);
-}catch(e){document.getElementById('status').textContent=e.message}}
-async function submitReview(){try{
-if(revision===null)throw Error('Load a candidate first');
-const r=await api('/api/runs/'+encodeURIComponent(document.getElementById('run').value)+'/reviews','POST',
-{expected_revision:revision,event_key:crypto.randomUUID().replaceAll('-',''),
-disposition:document.getElementById('decision').value,reason:document.getElementById('reason').value});
-document.getElementById('status').textContent=JSON.stringify(r);await load();
-}catch(e){document.getElementById('status').textContent=e.message}}
-</script></html>"""
 
 
 def handler_factory(db_path: Path, token: str):
@@ -191,6 +158,7 @@ def handler_factory(db_path: Path, token: str):
             self.send_header("Content-Type", "application/json")
             self.send_header("Cache-Control", "no-store")
             self.send_header("X-Content-Type-Options", "nosniff")
+            self.send_header("Referrer-Policy", "no-referrer")
             self.send_header("Content-Length", str(len(blob)))
             self.end_headers()
             self.wfile.write(blob)
@@ -206,6 +174,7 @@ def handler_factory(db_path: Path, token: str):
                 self.send_response(200)
                 self.send_header("Content-Type","text/html; charset=utf-8")
                 self.send_header("Cache-Control","no-store")
+                self.send_header("X-Content-Type-Options","nosniff")
                 self.send_header("Content-Security-Policy","default-src 'self' 'unsafe-inline'")
                 self.send_header("Content-Length",str(len(blob)))
                 self.end_headers()
