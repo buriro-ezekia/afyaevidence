@@ -6,6 +6,7 @@ substitutes fixture data when the requested live provider fails.
 from __future__ import annotations
 
 import argparse
+import fcntl
 from datetime import datetime, timezone
 import json
 import os
@@ -45,6 +46,16 @@ def supervise(argv, *, state_dir: Path, timeout: int = 660):
     # Log only statuses and paths: argv and env may contain sensitive values.
     write_exclusive(status_path, dict(job_id=run_id, state="running", started_at=start,
                                      receipt=str(output), deadline_seconds=timeout))
+    lock = (state_dir / ".worker.lock").open("a+")
+    try:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        lock.close()
+        write_exclusive(state_dir / (run_id + ".final.json"),
+                        dict(job_id=run_id,state="busy",started_at=start,
+                             ended_at=datetime.now(timezone.utc).isoformat(),
+                             receipt=str(output),receipt_execution_status=None))
+        return dict(job_id=run_id,state="busy",receipt_execution_status=None)
     proc = None
     outcome = "interrupted"
     try:
@@ -77,6 +88,8 @@ def supervise(argv, *, state_dir: Path, timeout: int = 660):
                        receipt=str(output), receipt_execution_status=receipt_status)
         # Immutable event, never overwrite initial job record.
         write_exclusive(state_dir / (run_id + ".final.json"), updated)
+        fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+        lock.close()
     return updated
 
 
