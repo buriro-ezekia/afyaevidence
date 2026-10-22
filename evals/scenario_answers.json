@@ -1,0 +1,1070 @@
+{
+  "schema_version": "answers-1",
+  "synthetic_only": true,
+  "comparison_month": "2025-10-01",
+  "target_month": "2025-11-01",
+  "district_id": "D001",
+  "cases": [
+    {
+      "case_id": "E01",
+      "dataset_id": "fx_10a7c921",
+      "description": "Expanded testing",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 400,
+            "positive": 80,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 800,
+          "positive": 160,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 800,
+            "positive": 160,
+            "positivity_pct": 20
+          }
+        },
+        "change": {
+          "positive_delta": 80,
+          "positive_change_pct": 100,
+          "tested_change_pct": 100,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "Positive counts accompany doubled testing; stable positivity does not establish stable transmission.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E02",
+      "dataset_id": "fx_32e8b610",
+      "description": "Reporting revision artefact",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 600,
+            "positive": 120,
+            "positivity_pct": 20
+          },
+          "latest_versions": {
+            "F001": 2
+          }
+        },
+        "change": {
+          "positive_delta": 0,
+          "positive_change_pct": 0,
+          "tested_change_pct": 0,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "The old F001 version explains the raw extra 20 positives; canonical totals are unchanged. This is not an exact-key duplicate.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ],
+      "required_report_versions": [
+        [
+          "R202511001",
+          1
+        ],
+        [
+          "R202511001",
+          2
+        ]
+      ]
+    },
+    {
+      "case_id": "E03",
+      "dataset_id": "fx_47c9d203",
+      "description": "Unexplained increase",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 500,
+          "positive": 175,
+          "positivity_pct": 35,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 175,
+            "positivity_pct": 35
+          }
+        },
+        "change": {
+          "positive_delta": 75,
+          "positive_change_pct": 75,
+          "tested_change_pct": 0,
+          "positivity_change_pp": 15
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "Stable coverage and testing do not explain this rise; further evidence is required.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E04",
+      "dataset_id": "fx_58f1a946",
+      "description": "Mixed revision and residual increase",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 500,
+          "positive": 125,
+          "positivity_pct": 25,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 600,
+            "positive": 145
+          },
+          "latest_versions": {
+            "F001": 2
+          }
+        },
+        "change": {
+          "positive_delta": 25,
+          "positive_change_pct": 25,
+          "tested_change_pct": 0,
+          "positivity_change_pp": 5
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "Removing the old version accounts for 20 of the raw 45-positive increase; the remaining 25 remains unexplained.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ],
+      "required_report_versions": [
+        [
+          "R202511001",
+          1
+        ],
+        [
+          "R202511001",
+          2
+        ]
+      ]
+    },
+    {
+      "case_id": "E05",
+      "dataset_id": "fx_6b2d801e",
+      "description": "Missing baseline",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": null,
+          "positive": null,
+          "positivity_pct": null,
+          "positivity_reason": "NO_VALID_REPORTS",
+          "expected": 6,
+          "received": 0,
+          "accepted": 0,
+          "valid": 0,
+          "availability": "unavailable",
+          "raw": {
+            "tested": null,
+            "positive": null,
+            "positivity_pct": null
+          }
+        },
+        "target": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "change": {
+          "positive_delta": null,
+          "positive_change_pct": null,
+          "tested_change_pct": null,
+          "positivity_change_pp": null
+        },
+        "finding_codes": [
+          "MISSING_REPORT"
+        ]
+      },
+      "acceptable_interpretation": "No valid baseline: comparative evidence is insufficient; missing is not zero.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E06",
+      "dataset_id": "fx_7c3e912f",
+      "description": "True zero tested denominator",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 0,
+          "positive": 0,
+          "positivity_pct": null,
+          "positivity_reason": "ZERO_DENOMINATOR",
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 0,
+            "positive": 0,
+            "positivity_pct": null
+          }
+        },
+        "change": {
+          "positive_delta": -100,
+          "positive_change_pct": -100,
+          "tested_change_pct": -100,
+          "positivity_change_pp": null
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "All reports are present with true zero tests; positivity is undefined, not zero.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E07",
+      "dataset_id": "fx_8d4fa230",
+      "description": "Impossible target count",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 5,
+          "availability": "partial",
+          "raw": {
+            "tested": 400,
+            "positive": 80,
+            "positivity_pct": 20
+          }
+        },
+        "change": {
+          "positive_delta": -20,
+          "positive_change_pct": -20,
+          "tested_change_pct": -20,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": [
+          "IMPOSSIBLE_COUNTS"
+        ],
+        "matched": {
+          "facilities": [
+            "F002",
+            "F003",
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "comparison": {
+            "tested": 400,
+            "positive": 80
+          },
+          "target": {
+            "tested": 400,
+            "positive": 80
+          },
+          "change": {
+            "positive_delta": 0,
+            "positive_change_pct": 0,
+            "tested_change_pct": 0,
+            "positivity_change_pp": 0
+          }
+        }
+      },
+      "acceptable_interpretation": "F001 positive exceeds tested; exclude it and disclose partial coverage. Matched facilities show no change.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E08",
+      "dataset_id": "fx_9e50b341",
+      "description": "Conflicting report/version key",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 5,
+          "valid": 5,
+          "availability": "partial",
+          "raw": {
+            "tested": 400,
+            "positive": 80,
+            "positivity_pct": 20
+          }
+        },
+        "change": {
+          "positive_delta": -20,
+          "positive_change_pct": -20,
+          "tested_change_pct": -20,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": [
+          "CONFLICTING_KEY"
+        ],
+        "matched": {
+          "facilities": [
+            "F002",
+            "F003",
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "comparison": {
+            "tested": 400,
+            "positive": 80
+          },
+          "target": {
+            "tested": 400,
+            "positive": 80
+          },
+          "change": {
+            "positive_delta": 0,
+            "positive_change_pct": 0,
+            "tested_change_pct": 0,
+            "positivity_change_pp": 0
+          }
+        }
+      },
+      "acceptable_interpretation": "The F001 report key has incompatible values; no arbitrary winner and no multiplying join.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E09_before",
+      "dataset_id": "fx_a061c452",
+      "description": "Correction is after cutoff",
+      "as_of_utc": "2025-12-10T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          },
+          "latest_versions": {
+            "F001": 1
+          }
+        },
+        "change": {
+          "positive_delta": 0,
+          "positive_change_pct": 0,
+          "tested_change_pct": 0,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "Only F001 v1 is observable; no future correction may be cited.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ],
+      "forbidden_report_versions": [
+        [
+          "R202511001",
+          2
+        ]
+      ]
+    },
+    {
+      "case_id": "E09_after",
+      "dataset_id": "fx_a061c452",
+      "description": "Correction is now observed",
+      "as_of_utc": "2025-12-21T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 500,
+          "positive": 115,
+          "positivity_pct": 23,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 600,
+            "positive": 135
+          },
+          "latest_versions": {
+            "F001": 2
+          }
+        },
+        "change": {
+          "positive_delta": 15,
+          "positive_change_pct": 15,
+          "tested_change_pct": 0,
+          "positivity_change_pp": 3
+        },
+        "finding_codes": []
+      },
+      "acceptable_interpretation": "F001 v2 replaces v1 only after its arrival.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ],
+      "required_report_versions": [
+        [
+          "R202511001",
+          1
+        ],
+        [
+          "R202511001",
+          2
+        ]
+      ]
+    },
+    {
+      "case_id": "E10_invalid",
+      "dataset_id": "fx_b172d563",
+      "description": "Invalid latest version",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 5,
+          "availability": "partial",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          },
+          "latest_versions": {
+            "F001": 2
+          }
+        },
+        "change": {
+          "positive_delta": -20,
+          "positive_change_pct": -20,
+          "tested_change_pct": -20,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": [
+          "IMPOSSIBLE_COUNTS"
+        ],
+        "matched": {
+          "facilities": [
+            "F002",
+            "F003",
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "comparison": {
+            "tested": 400,
+            "positive": 80
+          },
+          "target": {
+            "tested": 400,
+            "positive": 80
+          },
+          "change": {
+            "positive_delta": 0,
+            "positive_change_pct": 0,
+            "tested_change_pct": 0,
+            "positivity_change_pp": 0
+          }
+        }
+      },
+      "acceptable_interpretation": "Latest F001 v2 is invalid. Do not restore v1 in canonical totals.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ],
+      "required_report_versions": [
+        [
+          "R202511001",
+          1
+        ],
+        [
+          "R202511001",
+          2
+        ]
+      ]
+    },
+    {
+      "case_id": "E10_withdrawn",
+      "dataset_id": "fx_c283e674",
+      "description": "Withdrawn latest version",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 5,
+          "valid": 5,
+          "availability": "partial",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          },
+          "latest_versions": {
+            "F001": 2
+          }
+        },
+        "change": {
+          "positive_delta": -20,
+          "positive_change_pct": -20,
+          "tested_change_pct": -20,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": [
+          "WITHDRAWN"
+        ],
+        "matched": {
+          "facilities": [
+            "F002",
+            "F003",
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "comparison": {
+            "tested": 400,
+            "positive": 80
+          },
+          "target": {
+            "tested": 400,
+            "positive": 80
+          },
+          "change": {
+            "positive_delta": 0,
+            "positive_change_pct": 0,
+            "tested_change_pct": 0,
+            "positivity_change_pp": 0
+          }
+        }
+      },
+      "acceptable_interpretation": "Latest F001 v2 is withdrawn; receipt coverage remains six, accepted coverage falls to five. No fallback.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ],
+      "required_report_versions": [
+        [
+          "R202511001",
+          1
+        ],
+        [
+          "R202511001",
+          2
+        ]
+      ]
+    },
+    {
+      "case_id": "E11",
+      "dataset_id": "fx_d394f785",
+      "description": "Missing target facility",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 5,
+          "accepted": 5,
+          "valid": 5,
+          "availability": "partial",
+          "raw": {
+            "tested": 400,
+            "positive": 80,
+            "positivity_pct": 20
+          }
+        },
+        "change": {
+          "positive_delta": -20,
+          "positive_change_pct": -20,
+          "tested_change_pct": -20,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": [
+          "MISSING_REPORT"
+        ],
+        "matched": {
+          "facilities": [
+            "F002",
+            "F003",
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "comparison": {
+            "tested": 400,
+            "positive": 80
+          },
+          "target": {
+            "tested": 400,
+            "positive": 80
+          },
+          "change": {
+            "positive_delta": 0,
+            "positive_change_pct": 0,
+            "tested_change_pct": 0,
+            "positivity_change_pp": 0
+          }
+        }
+      },
+      "acceptable_interpretation": "Changed coverage prevents treating unmatched totals as a comparable district decrease.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E12_orphan",
+      "dataset_id": "fx_e4a50896",
+      "description": "Orphan log",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": null,
+          "positive": null,
+          "positivity_pct": null,
+          "positivity_reason": "NO_VALID_REPORTS",
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 0,
+          "availability": "unavailable",
+          "raw": {
+            "tested": null,
+            "positive": null,
+            "positivity_pct": null
+          }
+        },
+        "target": {
+          "tested": null,
+          "positive": null,
+          "positivity_pct": null,
+          "positivity_reason": "NO_VALID_REPORTS",
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 0,
+          "availability": "unavailable",
+          "raw": {
+            "tested": null,
+            "positive": null,
+            "positivity_pct": null
+          }
+        },
+        "change": {
+          "positive_delta": null,
+          "positive_change_pct": null,
+          "tested_change_pct": null,
+          "positivity_change_pp": null
+        },
+        "finding_codes": [
+          "ORPHAN_LOG"
+        ]
+      },
+      "acceptable_interpretation": "A visible log cannot be assigned to a source period/facility. Block aggregate claims for this scope.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E12_unknown",
+      "dataset_id": "fx_f5b619a7",
+      "description": "Unknown facility",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": null,
+          "positive": null,
+          "positivity_pct": null,
+          "positivity_reason": "NO_VALID_REPORTS",
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 0,
+          "availability": "unavailable",
+          "raw": {
+            "tested": null,
+            "positive": null,
+            "positivity_pct": null
+          }
+        },
+        "target": {
+          "tested": null,
+          "positive": null,
+          "positivity_pct": null,
+          "positivity_reason": "NO_VALID_REPORTS",
+          "expected": 6,
+          "received": 5,
+          "accepted": 5,
+          "valid": 0,
+          "availability": "unavailable",
+          "raw": {
+            "tested": null,
+            "positive": null,
+            "positivity_pct": null
+          }
+        },
+        "change": {
+          "positive_delta": null,
+          "positive_change_pct": null,
+          "tested_change_pct": null,
+          "positivity_change_pp": null
+        },
+        "finding_codes": [
+          "MISSING_REPORT",
+          "UNKNOWN_FACILITY"
+        ]
+      },
+      "acceptable_interpretation": "Unregistered F999 must not disappear through an inner join; unresolved scope blocks aggregates.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    },
+    {
+      "case_id": "E13",
+      "dataset_id": "fx_06c72ab8",
+      "description": "Missing count differs from zero",
+      "as_of_utc": "2026-01-15T00:00:00Z",
+      "expected": {
+        "comparison": {
+          "tested": 500,
+          "positive": 100,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 6,
+          "availability": "usable",
+          "raw": {
+            "tested": 500,
+            "positive": 100,
+            "positivity_pct": 20
+          }
+        },
+        "target": {
+          "tested": 400,
+          "positive": 80,
+          "positivity_pct": 20,
+          "positivity_reason": null,
+          "expected": 6,
+          "received": 6,
+          "accepted": 6,
+          "valid": 5,
+          "availability": "partial",
+          "raw": {
+            "tested": 400,
+            "positive": 80,
+            "positivity_pct": 20
+          }
+        },
+        "change": {
+          "positive_delta": -20,
+          "positive_change_pct": -20,
+          "tested_change_pct": -20,
+          "positivity_change_pp": 0
+        },
+        "finding_codes": [
+          "MISSING_COUNT"
+        ],
+        "matched": {
+          "facilities": [
+            "F002",
+            "F003",
+            "F004",
+            "F005",
+            "F006"
+          ],
+          "comparison": {
+            "tested": 400,
+            "positive": 80
+          },
+          "target": {
+            "tested": 400,
+            "positive": 80
+          },
+          "change": {
+            "positive_delta": 0,
+            "positive_change_pct": 0,
+            "tested_change_pct": 0,
+            "positivity_change_pp": 0
+          }
+        }
+      },
+      "acceptable_interpretation": "F001 has an absent positive count, not zero; declared complete does not establish analytical completeness.",
+      "prohibited_claims": [
+        "Diagnosis, treatment or outbreak declaration",
+        "Causal attribution unsupported by these aggregate records"
+      ]
+    }
+  ]
+}

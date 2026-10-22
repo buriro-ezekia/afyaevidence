@@ -1,0 +1,49 @@
+name: Synthetic contracts and source-access probe
+
+on:
+  push:
+    branches: [main, 'codex/**']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  fixture-contract:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.12', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check deterministic fixture bytes
+        run: python scripts/generate_probe.py --check
+      - name: Check source contract without JDBC
+        run: python scripts/verify_zetaris.py --check-fixture
+      - name: Check reproducible monthly snapshots
+        run: python scripts/generate_synthetic.py --check
+      - name: Evaluate independent scenario answers
+        run: python scripts/evaluate_synthetic.py
+      - name: Check three-table verifier preflight without JDBC
+        run: python scripts/verify_zetaris_snapshot.py --check-fixture
+      - name: Run deterministic runtime on fixture snapshot
+        run: python scripts/analyse_snapshot.py --mode fixture --snapshot data/synthetic/fx_32e8b610
+      - name: Verify actual pinned H-MEM reference
+        run: python scripts/verify_hmem.py
+      - name: Check scripted bounded agent on all synthetic cases
+        run: python scripts/check_agent.py
+      - name: Build runtime package
+        run: python -m pip wheel . --no-deps --wheel-dir dist
+      - name: Exclude evaluator keys from runtime package
+        run: python scripts/check_runtime_package.py dist/afyaevidence-0.1.0-py3-none-any.whl --smoke-snapshot data/synthetic/fx_32e8b610
+      - name: Run contract tests without secrets or a JVM
+        run: python -m unittest discover -s tests -v

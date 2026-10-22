@@ -1,0 +1,62 @@
+{
+  "dataset_id": "fx_b172d563",
+  "schema_version": "aggregate-1",
+  "generator_version": "synthetic-1.0.0",
+  "seed": 20261022,
+  "generation_timestamp": "2026-10-22T00:00:00Z",
+  "synthetic": true,
+  "canonical_algorithm": "afya-canonical-rows-v1",
+  "scope": {
+    "district_id": "D001",
+    "first_month": "2024-01-01",
+    "last_month": "2025-12-01",
+    "facility_count": 6,
+    "expected_facility_months": 144
+  },
+  "tables": {
+    "facility_registry": {
+      "file": "facility_registry.csv",
+      "field_order": [
+        "dataset_id",
+        "facility_id",
+        "district_id",
+        "facility_type",
+        "active_from",
+        "active_to"
+      ],
+      "row_count": 6,
+      "byte_sha256": "dadb424713c341353f63fae953ab9c18070f441dd182445fce634b40b5683254",
+      "canonical_sha256": "d888f6659b80036b5846267b56f203c15ac3ffe1d655a92f7ead2987b32fbfb1"
+    },
+    "malaria_monthly": {
+      "file": "malaria_monthly.csv",
+      "field_order": [
+        "dataset_id",
+        "report_id",
+        "report_version",
+        "facility_id",
+        "period_month",
+        "suspected_episodes",
+        "tested_episodes",
+        "positive_episodes"
+      ],
+      "row_count": 145,
+      "byte_sha256": "d97f152ab2dce69024acdeae7707592b50a056ab50b5b6f37db7bd80c11a03bf",
+      "canonical_sha256": "1d5150b40f2747da3ee19e3531813a1c6f0ef05e5a5b43137a15525646b356fa"
+    },
+    "reporting_log": {
+      "file": "reporting_log.csv",
+      "field_order": [
+        "dataset_id",
+        "report_id",
+        "report_version",
+        "received_at_utc",
+        "status",
+        "declared_complete"
+      ],
+      "row_count": 145,
+      "byte_sha256": "fa11334da72b9f9ff3141364b726582a54984ccefc004921b92bbee301c98639",
+      "canonical_sha256": "1b1210d3fb2ff3a88f272705664b6d104dcbc62aaa70dba5d2ce14acc8037737"
+    }
+  }
+}

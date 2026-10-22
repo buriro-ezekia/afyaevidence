@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_call"
+        },
+        "tool": {
+          "type": "string",
+          "const": "get_reporting_quality"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {},
+          "required": [],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_call"
+        },
+        "tool": {
+          "type": "string",
+          "const": "compare_monthly_indicators"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "view": {
+              "type": "string",
+              "enum": [
+                "canonical",
+                "raw_diagnostic"
+              ]
+            }
+          },
+          "required": [
+            "view"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_call"
+        },
+        "tool": {
+          "type": "string",
+          "const": "compare_matched_facilities"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "include_contributions": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "include_contributions"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_call"
+        },
+        "tool": {
+          "type": "string",
+          "const": "get_evidence_records"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "evidence_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1,
+              "maxItems": 20,
+              "uniqueItems": true
+            }
+          },
+          "required": [
+            "evidence_ids"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "tool_call"
+        },
+        "tool": {
+          "type": "string",
+          "const": "recall_review_context"
+        },
+        "arguments": {
+          "type": "object",
+          "properties": {
+            "query": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            }
+          },
+          "required": [
+            "query"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "type",
+        "tool",
+        "arguments"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "propose_brief"
+        },
+        "explanation": {
+          "type": "string",
+          "enum": [
+            "testing_change_supported",
+            "reporting_artefact_supported",
+            "mixed",
+            "unexplained",
+            "insufficient_data",
+            "no_canonical_change"
+          ]
+        },
+        "metric_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 2,
+          "maxItems": 16,
+          "uniqueItems": true
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "maxItems": 20,
+          "uniqueItems": true
+        },
+        "review_context_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 0,
+          "maxItems": 3,
+          "uniqueItems": true
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "synthetic_data",
+              "no_causal_attribution",
+              "coverage_difference",
+              "historical_memory_only"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true
+        },
+        "next_checks": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "review_source_versions",
+              "review_testing_practice",
+              "request_facility_context",
+              "resolve_missing_reports",
+              "human_review"
+            ]
+          },
+          "minItems": 1,
+          "maxItems": 5,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "type",
+        "explanation",
+        "metric_refs",
+        "evidence_ids",
+        "review_context_ids",
+        "limitations",
+        "next_checks"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

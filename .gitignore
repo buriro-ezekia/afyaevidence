@@ -1,0 +1,23 @@
+# Local credentials and operator state
+.env
+.env.*
+!.env.example
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.sqlite
+*.sqlite3
+*.sqlite3-*
+*.db
+*.jar
+node_modules/
+runtime/
+.afyaevidence/
+vendor/
+dist/
+build/
+*.egg-info/
+# Synthetic source fixtures and evaluator keys are intentional versioned files.
+# Exclude evaluator keys from runtime packaging/mounts, not from the source repo.

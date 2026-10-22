@@ -1,0 +1,23 @@
+{
+  "dataset_id": "fx_probe_v1",
+  "schema_version": "probe-1",
+  "purpose": "synthetic JDBC source-access probe; no malaria counts",
+  "generation_timestamp": "2026-10-21T00:00:00Z",
+  "canonical_algorithm": "afya-canonical-rows-v1",
+  "tables": {
+    "facility_registry": {
+      "file": "facility_registry.csv",
+      "field_order": [
+        "dataset_id",
+        "facility_id",
+        "district_id",
+        "facility_type",
+        "active_from",
+        "active_to"
+      ],
+      "row_count": 6,
+      "byte_sha256": "57d3d3289cfd8843cfb0f683810058f4dc584e06b39b9a368b6bdd7c43d7b52c",
+      "canonical_sha256": "21048703dbb00db32a54a8f7ea379e9de6c4d215761ebd6a87cb8b68c8919045"
+    }
+  }
+}
