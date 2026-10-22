@@ -102,11 +102,13 @@ class Budget:
     model_calls: int = 4
     tool_calls: int = 10
     deadline_seconds: float = 600
+    model_timeout_seconds: float = 180
 
     def __post_init__(self):
         if (type(self.model_calls) is not int or not 1<=self.model_calls<=4 or
             type(self.tool_calls) is not int or not 2<=self.tool_calls<=10 or
-            type(self.deadline_seconds) not in (int,float) or not 0<self.deadline_seconds<=600):
+            type(self.deadline_seconds) not in (int,float) or not 0<self.deadline_seconds<=600 or
+            type(self.model_timeout_seconds) not in (int,float) or not 0<self.model_timeout_seconds<=300):
             raise ValueError('Invalid bounded agent budget')
 
 
@@ -370,7 +372,9 @@ def run_agent(bundle,provider,*,question='Investigate the reporting change and i
             trace.append(dict(kind='action_contract',call=calls,phase=contract['phase'],
                               allowed_actions=contract['actions'],allow_brief=contract['allow_brief']))
             try:
-                response=provider.next_action(prompt,timeout=min(180,budget.deadline_seconds-(clock()-start)),
+                timeout=min(budget.model_timeout_seconds,budget.deadline_seconds-(clock()-start))
+                trace[-1]['timeout_seconds']=timeout
+                response=provider.next_action(prompt,timeout=timeout,
                                               action_schema=contract['schema'])
             except Exception as exc:
                 if clock()-start>=budget.deadline_seconds: raise ActionError('deadline_exceeded') from None
@@ -419,6 +423,7 @@ def run_agent(bundle,provider,*,question='Investigate the reporting change and i
         memory_mode='hmem_reference' if recall else 'disabled_fixture',memory_reads=session.memory_reads,
         memory_pending_sync=session.memory_pending_sync,
         memory_as_of_utc=memory_as_of_utc,model_calls=calls,tool_calls=tool_count,repairs=repairs,
+        model_timeout_seconds=budget.model_timeout_seconds,deadline_seconds=budget.deadline_seconds,
         trace=trace,evidence_bundle=session.data,
         reference_aliases=dict(metrics={a:m['metric_ref'] for a,m in session.metrics.items()},
                                evidence={a:e['evidence_id'] for a,e in session.evidence.items()},

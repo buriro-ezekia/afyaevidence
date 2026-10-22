@@ -83,6 +83,14 @@ class ModelTests(unittest.TestCase):
         with self.assertRaises(ProviderError): self.provider.request('/api/chat',{'x':'x'*100001},timeout=1)
         with self.assertRaises(ProviderError): self.provider.request('/arbitrary',timeout=1)
 
+    def test_cpu_timeout_reaches_transport_but_cannot_exceed_cap(self):
+        Handler.body=dict(model='qwen2.5:3b',done=True,message=dict(content='{}'))
+        with patch.object(self.provider.opener,'open',wraps=self.provider.opener.open) as opened:
+            self.provider.next_action([],timeout=300)
+        self.assertEqual(300,opened.call_args.kwargs['timeout'])
+        for invalid in (301,0,True,float('nan'),float('inf')):
+            with self.assertRaises(ProviderError): self.provider.next_action([],timeout=invalid)
+
     def test_oversized_and_invalid_usage_responses_fail(self):
         Handler.body=dict(model='qwen2.5:3b',done=True,message=dict(content='x'*16385))
         with self.assertRaises(ProviderError): self.provider.next_action([],timeout=1)

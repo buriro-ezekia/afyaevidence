@@ -144,6 +144,37 @@ class AgentTests(unittest.TestCase):
         self.assertEqual('deadline_exceeded',result['failure_reason'])
         self.assertEqual(0,result['model_calls'])
 
+    def test_cpu_timeout_is_explicit_and_clamped_to_remaining_deadline(self):
+        for durations,expected in (([130,147,200],[300,300,300]),([250,250,0],[300,300,100])):
+            now=[0];timeouts=[];policy=ScriptedProvider()
+            class CpuProvider:
+                mode='scripted';model='simulated-cpu-latency'
+                def next_action(inner,messages,*,timeout,action_schema=None):
+                    timeouts.append(timeout)
+                    response=policy.next_action(messages,timeout=timeout,action_schema=action_schema)
+                    now[0]+=durations[len(timeouts)-1]
+                    return response
+            result=run_agent(self.bundle(),CpuProvider(),budget=Budget(model_timeout_seconds=300),clock=lambda:now[0])
+            self.assertEqual('ready_for_review',result['execution_status'],result['failure_reason'])
+            self.assertEqual(expected,timeouts)
+            self.assertEqual(600,result['deadline_seconds'])
+            self.assertEqual(300,result['model_timeout_seconds'])
+            self.assertEqual(expected,[e['timeout_seconds'] for e in result['trace'] if e['kind']=='action_contract'])
+        for invalid in (0,301,True,float('nan'),float('inf')):
+            with self.assertRaises(ValueError): Budget(model_timeout_seconds=invalid)
+
+    def test_cpu_request_cannot_accept_a_response_past_loop_deadline(self):
+        now=[0]
+        class LateProvider:
+            mode='scripted';model='simulated-overrun'
+            def next_action(inner,messages,*,timeout,action_schema=None):
+                now[0]=601
+                return dict(content=json.dumps(tool('compare_monthly_indicators',{'view':'raw_diagnostic'})))
+        result=run_agent(self.bundle(),LateProvider(),budget=Budget(model_timeout_seconds=300),clock=lambda:now[0])
+        self.assertEqual('deadline_exceeded',result['failure_reason'])
+        self.assertIsNone(result['candidate_brief'])
+        self.assertEqual(2,result['tool_calls'])
+
     def test_provider_failure_never_falls_back(self):
         class Broken:
             mode='ollama';model='fake-unavailable'

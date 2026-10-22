@@ -35,7 +35,7 @@ class OllamaProvider:
         self.opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),NoRedirect())
 
     def request(self,path,body=None,timeout=30):
-        if path not in ('/api/tags','/api/chat') or not 0<timeout<=180:
+        if path not in ('/api/tags','/api/chat') or type(timeout) not in (int,float) or not 0<timeout<=300:
             raise ProviderError('model_invalid_request')
         payload=None if body is None else json.dumps(body,separators=(',',':'),allow_nan=False).encode()
         if payload is not None and len(payload)>100000: raise ProviderError('model_context_limit')

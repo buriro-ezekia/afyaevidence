@@ -8,7 +8,7 @@ import os
 from pathlib import Path
 import sys
 
-from .agent import run_agent
+from .agent import Budget, run_agent
 from .analysis import Request, investigate
 from .jdbc import DEFAULT_URL, JdbcGateway
 from .model import OllamaProvider, ScriptedProvider
@@ -22,6 +22,8 @@ def main(argv=None):
     p.add_argument('--model-provider',required=True,choices=('scripted','ollama'))
     p.add_argument('--endpoint',default=os.environ.get('OLLAMA_BASE_URL','http://127.0.0.1:8082'))
     p.add_argument('--model',default=os.environ.get('OLLAMA_MODEL','qwen2.5:3b'))
+    p.add_argument('--model-timeout',type=int,default=180,metavar='SECONDS',
+                   help='Per-request socket timeout, 1..300 seconds; bounded by the remaining 600-second loop deadline')
     p.add_argument('--memory',choices=('disabled_fixture','hmem_reference'),default='disabled_fixture')
     p.add_argument('--memory-root',type=Path,default=Path('runtime/memory'))
     p.add_argument('--reviews-db',type=Path,default=Path('runtime/review-notes.sqlite3'))
@@ -42,6 +44,7 @@ def main(argv=None):
     result=dict(schema_version='agent-run-1',execution_status='failed',failure_reason='setup_failed',
                 data_mode=args.data_mode,model_mode=args.model_provider,memory_mode=args.memory)
     try:
+        budget=Budget(model_timeout_seconds=args.model_timeout)
         request=Request(comparison_month=args.comparison_month,target_month=args.target_month,as_of_utc=args.as_of)
         if not 1<=len(args.question)<=1000: raise ValueError('Question exceeds scope')
         memory_cutoff=args.memory_as_of or datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -64,7 +67,7 @@ def main(argv=None):
                 bridge=stack.enter_context(HmemBridge(root=args.memory_root,bridge_dir=args.bridge_dir,
                     scope=Scope('afya-synthetic-v1',request.district_id),reviews=ReviewStore(args.reviews_db)))
                 recall=bridge.recall
-            result=run_agent(bundle,provider,question=args.question,recall=recall,
+            result=run_agent(bundle,provider,question=args.question,recall=recall,budget=budget,
                              memory_as_of_utc=memory_cutoff if recall else None)
     except KeyboardInterrupt:
         result['failure_reason']='cancelled';result['execution_status']='cancelled'
@@ -79,7 +82,7 @@ def main(argv=None):
     ready=result['execution_status']=='ready_for_review'
     print(f"DATA_MODE={args.data_mode}\nMODEL_MODE={args.model_provider}\nMEMORY_MODE={args.memory}")
     print(f"AGENT_EXECUTION={'PASS' if ready else 'FAIL'}\nEXECUTION_STATUS={result['execution_status']}")
-    for key in ('prompt_version','model_calls','tool_calls','repairs'):
+    for key in ('prompt_version','model_calls','tool_calls','repairs','model_timeout_seconds','deadline_seconds'):
         if key in result: print(key.upper()+'='+str(result[key]))
     if ready:
         brief=result['candidate_brief']

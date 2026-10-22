@@ -89,6 +89,7 @@ python scripts/run_agent.py \
   --model-provider ollama \
   --endpoint http://172.22.160.1:11434 \
   --model qwen2.5:1.5b \
+  --model-timeout 300 \
   --memory hmem_reference \
   --bridge-dir bridges/hmem \
   --output runtime/agent-live-revision.json
@@ -163,7 +164,11 @@ validation repair; a second invalid action stops predictably. No duplicate tool
 executes, no budget grows, and no failed run falls back to a scripted result.
 The loop checks its
 600-second deadline and cancellation before/after dispatch; per-model request
-socket timeout is at most 180 seconds and bounded by remaining loop time. These
+socket timeout defaults to 180 seconds. The operator can explicitly select
+`--model-timeout 300` for CPU inference; 300 seconds is the maximum and every
+request is clamped to the remaining 600-second loop deadline. The receipt records
+the configured limits and each dispatched request timeout. A late response cannot
+be accepted after the loop deadline. These
 are not a tested hard end-to-end wall-clock guarantee: source collection precedes
 the loop, HTTP socket timeouts do not guarantee cancellation of remote generation,
 and the future supervised worker is still required to terminate stalled execution.
@@ -208,7 +213,7 @@ reviewer session/CSRF/idempotency and append-only decisions are a later slice.
 
 ## Actual validation and remaining gates
 
-Local validation: **119 tests pass**, including strict parser/authority boundaries,
+Local validation: **122 tests pass**, including strict parser/authority boundaries,
 all core/edge scripted cases, earlier-cutoff visibility, unknown references,
 unsupported categories, one repair, repeated calls, call/deadline/cancellation
 budgets, provider failure, prompt-injection labels, actual H-MEM recall without
@@ -219,9 +224,11 @@ isolated deterministic and scripted-agent execution outside the repository.
 
 The operator has already reported actual Zetaris runtime and pinned H-MEM bridge
 acceptance. The operator reported single-action Ollama capability PASS, followed by combined
-run failures on prompt version `investigator-2`. The `investigator-3` correction
-has automated state-contract and fake-HTTP coverage; actual local Ollama
-acceptance of the corrected pipeline is still pending because the remote
+run failures on prompt version `investigator-2`. The operator then reported that `investigator-3` completed raw and matched
+follow-ups without validation errors, but timed out on its third model request
+after earlier requests took 129 and 146 seconds. The explicit CPU timeout option
+has simulated latency/deadline coverage; actual complete local Ollama
+acceptance is still pending because the remote
 development environment cannot reach the operator's local service.
 The release design's repeated actual-model scenario evaluations, source-linked
 semantic review, worker interruption/recovery, authenticated human-review UI and
