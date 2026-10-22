@@ -32,6 +32,25 @@ class IdentityAuthTests(unittest.TestCase):
         for change in ({'exp':now-5},{'nbf':now+100},{'iat':now+100}):
             with self.subTest(change=change): self.rejected(token(changes=change))
 
+    def test_missing_nbf_uses_signed_iat_without_disabling_time_guards(self):
+        import jwt
+        now = int(time.time())
+        claims = dict(iss=ISSUER, aud=AUDIENCE, sub='viewer-1',
+                      jti='missing-nbf', iat=now-1, exp=now+299,
+                      roles=['viewer'])
+        def signed(**overrides):
+            values = {**claims, **overrides}
+            return jwt.encode(values, signing_keys()[0], algorithm='RS256',
+                              headers={'kid':'test-key','typ':'at+jwt'})
+        principal = self.v.verify(signed())
+        self.assertEqual(principal.roles, ('viewer',))
+        self.assertEqual(len(self.transport.calls), 2)
+        for change in ({'iat':now+90}, {'exp':now-10},
+                       {'iat':now-901}, {'nbf':now+90},
+                       {'nbf':None}, {'nbf':True}, {'nbf':now-100}):
+            with self.subTest(change=change):
+                self.rejected(signed(**change))
+
     def test_wrong_signature(self):
         self.rejected(token(key=rsa.generate_private_key(public_exponent=65537,key_size=2048)))
 
