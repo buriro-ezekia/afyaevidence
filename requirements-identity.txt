@@ -1,0 +1,5 @@
+# Optional identity/managed-worker feature; existing core runtime stays dependency-free.
+# Upgrade to current compatible releases, then retain the verification environment record.
+# A deployment still requires a pinned, vulnerability-reviewed dependency lock.
+PyJWT[crypto]>=2.13.0,<3
+cryptography>=46.0.4

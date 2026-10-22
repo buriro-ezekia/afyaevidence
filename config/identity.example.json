@@ -1,0 +1,11 @@
+{
+  "issuer": "https://your-identity-provider.example.invalid/realm",
+  "audience": "afya-review-api",
+  "jwks_uri": "https://your-identity-provider.example.invalid/realm/keys",
+  "introspection_uri": "https://your-identity-provider.example.invalid/realm/introspect",
+  "client_id": "afya-review-introspection",
+  "secret_env": "AFYA_OIDC_CLIENT_SECRET",
+  "roles_claim": "roles",
+  "token_type": "at+jwt",
+  "max_lifetime_seconds": 900
+}
