@@ -25,8 +25,8 @@ import secrets,sys
 from pathlib import Path
 p=Path(sys.argv[1])
 with p.open("x") as f:
-    f.write("KC_BOOTSTRAP_ADMIN_USERNAME=afya-local-admin\\n")
-    f.write("KC_BOOTSTRAP_ADMIN_PASSWORD="+secrets.token_urlsafe(36)+"\\n")
+    f.write("KC_BOOTSTRAP_ADMIN_USERNAME=afya-local-admin\n")
+    f.write("KC_BOOTSTRAP_ADMIN_PASSWORD="+secrets.token_urlsafe(36)+"\n")
 p.chmod(0o600)
 PY
 fi
