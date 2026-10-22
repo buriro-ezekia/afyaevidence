@@ -21,7 +21,70 @@ from urllib.error import URLError, HTTPError
 from urllib.parse import parse_qs, urlencode, urlsplit
 from urllib.request import Request, HTTPSHandler, ProxyHandler, build_opener
 
-from afyaevidence.identity_auth import IdentityConfig, IdentityError, OIDCVerifier
+from afyaevidence.identity_auth import IdentityConfig, IdentityError, OIDCVerifier, ProviderTransport
+
+
+class DiagnosticTransport(ProviderTransport):
+    """Reports only comparison booleans, never tokens or claim values."""
+    def __init__(self):
+        super().__init__()
+        self.jwks_reached = False
+        self.introspection_reached = False
+        self.status = {}
+
+    def json(self, url, *, body=None, headers=None):
+        doc = super().json(url, body=body, headers=headers)
+        if body is None:
+            self.jwks_reached = True
+        else:
+            self.introspection_reached = True
+            # Diagnostics compare claims, without printing personal data or secrets.
+            claim = getattr(self, "untrusted_claim", {})
+            self.status = {
+                "active": doc.get("active") is True,
+                "iss_present": isinstance(doc.get("iss"), str),
+                "iss_equal": doc.get("iss") == claim.get("iss"),
+                "aud_present": "aud" in doc,
+                "aud_equal": doc.get("aud") == claim.get("aud"),
+                "sub_present": isinstance(doc.get("sub"), str),
+                "sub_equal": doc.get("sub") == claim.get("sub"),
+                "exp_present": type(doc.get("exp")) is int,
+                "exp_equal": doc.get("exp") == claim.get("exp")
+            }
+        return doc
+
+
+def token_structure(token, transport, conf):
+    # This is an UNVERIFIED hint only; never use it to grant permission.
+    try:
+        parts = token.split(".")
+        if len(parts) != 3: return {"jwt_shape": False}
+        header = json.loads(base64.urlsafe_b64decode(parts[0] + "=" * (-len(parts[0]) % 4)))
+        claims = json.loads(base64.urlsafe_b64decode(parts[1] + "=" * (-len(parts[1]) % 4)))
+        if not isinstance(header, dict) or not isinstance(claims, dict): return {"jwt_shape": False}
+        transport.untrusted_claim = claims
+        return {
+            "jwt_shape": True,
+            "header_alg_rs256": header.get("alg") == "RS256",
+            "header_typ_at_jwt": header.get("typ") == "at+jwt",
+            "kid_present": isinstance(header.get("kid"), str),
+            "issuer_match_unverified": claims.get("iss") == conf.issuer,
+            "audience_match_unverified": claims.get("aud") == conf.audience and type(claims.get("aud")) is str,
+            "roles_list_unverified": isinstance(claims.get(conf.roles_claim), list),
+            "required_claims_present_unverified": all(k in claims for k in ("sub","jti","iat","nbf","exp")),
+        }
+    except (ValueError, TypeError, UnicodeError, KeyError):
+        return {"jwt_shape": False}
+
+
+def report_diagnostics(structure, transport):
+    print("PKCE_DIAGNOSTIC=UNVERIFIED_FLAGS_ONLY")
+    for key, val in structure.items():
+        print("TOKEN_" + key.upper() + "=" + ("YES" if val else "NO"))
+    print("JWKS_FETCHED=" + ("YES" if transport.jwks_reached else "NO"))
+    print("INTROSPECTION_REACHED=" + ("YES" if transport.introspection_reached else "NO"))
+    for key, val in transport.status.items():
+        print("INTROSPECTION_" + key.upper() + "=" + ("YES" if val else "NO"))
 
 AUTHORITY = "https://localhost:8443/realms/afya-local"
 CALLBACK = "http://127.0.0.1:8765/callback"
@@ -50,7 +113,8 @@ def main(argv=None) -> int:
         if not secret:
             print("PKCE_LOGIN=BLOCKED: introspection secret is not configured")
             return 2
-        verifier = OIDCVerifier(conf, secret)
+        diagnostic_transport = DiagnosticTransport()
+        verifier = OIDCVerifier(conf, secret, transport=diagnostic_transport)
         cert = Path.home() / ".local/state/afyaevidence-keycloak-local/tls/tls.crt"
         if not cert.is_file():
             print("PKCE_LOGIN=BLOCKED: trusted local CA missing")
@@ -164,9 +228,11 @@ def main(argv=None) -> int:
         token = doc.get("access_token")
         if not isinstance(token, str) or not token:
             raise ValueError("access token missing")
+        structure = token_structure(token, diagnostic_transport, conf)
         principal = verifier.verify(token)
     except IdentityError as err:
         print("PKCE_LOGIN=FAIL: " + err.code)
+        report_diagnostics(locals().get("structure", {}), diagnostic_transport)
         print("Check header typ, issuer, exact audience, flat roles and introspection claim compatibility.")
         return 1
     except (HTTPError, URLError, ValueError, KeyError, TypeError, OSError):
