@@ -72,6 +72,11 @@ def token_structure(token, transport, conf):
             "audience_match_unverified": claims.get("aud") == conf.audience and type(claims.get("aud")) is str,
             "roles_list_unverified": isinstance(claims.get(conf.roles_claim), list),
             "required_claims_present_unverified": all(k in claims for k in ("sub","jti","iat","nbf","exp")),
+            "claim_sub_present_unverified": isinstance(claims.get("sub"), str) and bool(claims.get("sub")),
+            "claim_jti_present_unverified": isinstance(claims.get("jti"), str) and bool(claims.get("jti")),
+            "claim_iat_integer_unverified": type(claims.get("iat")) is int,
+            "claim_nbf_integer_unverified": type(claims.get("nbf")) is int,
+            "claim_exp_integer_unverified": type(claims.get("exp")) is int,
         }
     except (ValueError, TypeError, UnicodeError, KeyError):
         return {"jwt_shape": False}
