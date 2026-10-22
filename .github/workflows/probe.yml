@@ -30,6 +30,8 @@ jobs:
         run: python scripts/generate_synthetic.py --check
       - name: Evaluate independent scenario answers
         run: python scripts/evaluate_synthetic.py
+      - name: Check three-table verifier preflight without JDBC
+        run: python scripts/verify_zetaris_snapshot.py --check-fixture
       - name: Build runtime package
         run: python -m pip wheel . --no-deps --wheel-dir dist
       - name: Exclude evaluator keys from runtime package

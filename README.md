@@ -18,6 +18,7 @@ python scripts/generate_probe.py --check
 python scripts/verify_zetaris.py --check-fixture
 python scripts/generate_synthetic.py --check
 python scripts/evaluate_synthetic.py
+python scripts/verify_zetaris_snapshot.py --check-fixture
 python -m unittest discover -s tests -v
 ```
 
@@ -37,6 +38,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Components, dependency boundaries, investigation lifecycle, deployment and failure handling |
 | [First data access](docs/FIRST_DATA_ACCESS.md) | Six-row JDBC probe and operator-reported live acceptance |
+| [Three-table verification](docs/VERIFY_SNAPSHOT.md) | Exact live JDBC hashes, join and reference parity |
 | [Synthetic data](docs/SYNTHETIC_DATA.md) | Fifteen reproducible snapshots, evaluator answers, checks and source-only staging |
 | [Data contract](docs/DATA_CONTRACT.md) | Three source tables, observation cutoffs, revision resolution and indicator semantics |
 | [Tool and API contracts](docs/CONTRACTS.md) | Model-visible tools, evidence/brief structures, human review and API endpoints |
@@ -49,7 +51,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 
 The six-row live project-table gate passed on the operator's machine. Next stage one new three-table snapshot using the [synthetic-data guide](docs/SYNTHETIC_DATA.md), register it through the proven NDP File System route without replacing the probe, then reconcile actual JDBC results against the reference.
 
-The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime analysis service, UI, model loop and memory bridge do not. The existing working JDBC environment remains separate. Local checks: 37 tests, 16 fixture cases, reproducible bytes and wheel exclusion passed. GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
+The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime analysis service, UI, model loop and memory bridge do not. The existing working JDBC environment remains separate. Local checks: 52 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) is implemented; its real run is pending on the operator's machine. GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
 
 ## Development boundaries
 

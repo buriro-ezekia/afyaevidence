@@ -135,8 +135,9 @@ header `true` and `inferSchema=false`; preview each source before creating it.
 The next live acceptance is three bounded JDBC reads, full table hash/count
 reconciliation, a non-multiplying version-key join and parity with the reference.
 The current `verify_zetaris.py` intentionally remains the six-row **probe** verifier;
-it does not verify these monthly snapshots. A three-table verifier is the next
-integration slice, rather than an untested claim in this increment.
+it does not verify these monthly snapshots. The three-table verifier is now implemented in
+`scripts/verify_zetaris_snapshot.py`; follow [VERIFY_SNAPSHOT.md](VERIFY_SNAPSHOT.md).
+Its real JDBC execution remains pending.
 
 ## Runtime packaging and isolation
 
