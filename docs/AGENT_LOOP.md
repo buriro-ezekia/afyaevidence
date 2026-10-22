@@ -30,15 +30,18 @@ reference handling, not model capability.
 
 ## Verify the actual model before making another live source query
 
-The configured starting endpoint is the user's existing Ollama service at
-`http://127.0.0.1:8082`, with candidate model `qwen2.5:3b`. Reachability from Ubuntu
-and that exact installed model remain to be checked. The adapter never starts a
+The operator verified Ollama in Windows and reached it from Ubuntu at
+`http://172.22.160.1:11434`, bound specifically to the Windows WSL interface.
+Both `qwen2.5:3b` and `qwen2.5:1.5b` passed the single-action probe. The 3b
+combined run exceeded its 180-second request timeout; the 1.5b run returned
+a repeated mandatory canonical comparison. The endpoint is host-specific and
+can change after a WSL restart; use the actual verified interface address. The adapter never starts a
 server, downloads a model, scans ports, follows HTTP redirects, uses environment
 proxies or silently changes providers. Explicit host configuration is required.
 
 ```bash
 python scripts/verify_model.py \
-  --endpoint http://127.0.0.1:8082 \
+  --endpoint http://172.22.160.1:11434 \
   --list-models
 ```
 
@@ -46,8 +49,8 @@ Then check strict action generation with an actual installed model:
 
 ```bash
 python scripts/verify_model.py \
-  --endpoint http://127.0.0.1:8082 \
-  --model qwen2.5:3b \
+  --endpoint http://172.22.160.1:11434 \
+  --model qwen2.5:1.5b \
   --output runtime/model-verification.json
 ```
 
@@ -84,8 +87,8 @@ python scripts/run_agent.py \
   --database AFYAEVIDENCE_REVISION \
   --jar "$HOME/zetaris-setup/zetaris-platform/jdbc/ndp-jdbc-driver-2.4.3.1-7eff043-driver.jar" \
   --model-provider ollama \
-  --endpoint http://127.0.0.1:8082 \
-  --model qwen2.5:3b \
+  --endpoint http://172.22.160.1:11434 \
+  --model qwen2.5:1.5b \
   --memory hmem_reference \
   --bridge-dir bridges/hmem \
   --output runtime/agent-live-revision.json
@@ -104,8 +107,8 @@ an outbox write. Model-controlled writes and automatic memory dreaming are absen
 Memory is recalled once as a mandatory baseline against the bounded question,
 before model dispatch. The host freezes a separate memory cutoff at CLI start;
 `--memory-as-of` can explicitly set one. The reporting-data cutoff defaults to
-`2026-01-15T00:00:00Z`, independently. Further memory queries remain scope- and
-cutoff-bound. Historical notes keep original review/snapshot provenance and their
+`2026-01-15T00:00:00Z`, independently. The finite follow-up menu does not expose additional memory queries; the
+initial host-owned query stays scope- and cutoff-bound. Historical notes keep original review/snapshot provenance and their
 untrusted/non-measurement labels. They never become current metric references.
 
 Successful execution prints `AGENT_EXECUTION=PASS`,
@@ -117,8 +120,11 @@ substituted. Setup errors also receive a failed receipt when possible.
 
 ## Actions, tools and budgets
 
-`schemas/agent-action.schema.json` is the exported protocol. The matching runtime
-schema is sent to Ollama; a regression test detects export drift. The standard-
+`schemas/agent-action.schema.json` is the exported superset protocol. Each
+Ollama request receives a narrower, host-generated schema in both its `format`
+field and current prompt. The global superset is never advertised to the model
+in an investigation. Schema-export consistency and fake-HTTP integration tests
+verify the two contracts. The standard-
 library validator rejects unknown fields, duplicate JSON keys, non-JSON/fenced
 responses, non-finite numbers, incorrect types and overlong lists/text. No new
 third-party Python runtime dependency is introduced. Proposed HTTP/API schemas
@@ -130,6 +136,24 @@ review recall. The host injects the fixed bundle/scope; model arguments cannot
 select a database, snapshot, cutoff, district or output path. Quality and canonical
 facts are mandatory before the first model call. At least one optional follow-up
 must execute before a candidate brief is accepted.
+
+Prompt version `investigator-3` supplies finite exact follow-up actions: raw
+version comparison, matched facilities with or without contributions, and stable
+source batches of at most 20 scoped evidence records grouped by table/month.
+A completed pair is removed, and either matched variant completes that analysis.
+Quality, canonical comparison and initial memory recall are already complete and
+never appear as model choices. The host validates exact menu membership before
+dispatch even if a provider ignores the schema. The original duplicate guard
+still rejects known pairs before any dependency executes.
+
+If the model first inspects matched facilities or source records, the next
+choice is raw comparison so the model sees version effects before proposing an
+explanation. Brief generation requires at least one follow-up plus raw facts.
+After these prerequisites, the last available call is brief-only. The model
+still chooses a category and references; the host does not fill in an answer
+when inference fails. Brief schemas enumerate only shown metric/evidence aliases
+and recalled contexts. Category prerequisites, supporting metrics, period coverage
+and human-review limitations are validated separately after generation.
 
 Hard dispatch limits are four provider calls, ten tool invocations including
 mandatory baselines, and one validation-repair opportunity within that same provider
@@ -146,10 +170,12 @@ and the future supervised worker is still required to terminate stalled executio
 Ctrl+C produces a cancelled receipt where possible. No background automatic retry
 is added for failed actual provider requests.
 
-The receipt retains model actions, tool arguments/results, bounded provider replies,
+The receipt retains per-turn available actions/phase, model actions, tool arguments/results, bounded provider replies,
 usage where available, validation errors, the immutable scope/evidence bundle and
 reference mappings. Provider errors do not expose credentials or raw transport
-messages. Treat trace source/model text as untrusted if a future UI renders it.
+messages. Timeout, HTTP failure, transport failure, oversized context and invalid
+response have separate sanitised codes. The CLI prints prompt version, call counts
+and failure-stage summaries so the operator can diagnose a failed run directly. Treat trace source/model text as untrusted if a future UI renders it.
 
 ## Numbers, explanations and references
 
@@ -182,7 +208,7 @@ reviewer session/CSRF/idempotency and append-only decisions are a later slice.
 
 ## Actual validation and remaining gates
 
-Local validation: **107 tests pass**, including strict parser/authority boundaries,
+Local validation: **119 tests pass**, including strict parser/authority boundaries,
 all core/edge scripted cases, earlier-cutoff visibility, unknown references,
 unsupported categories, one repair, repeated calls, call/deadline/cancellation
 budgets, provider failure, prompt-injection labels, actual H-MEM recall without
@@ -192,9 +218,11 @@ actual Ollama calls. The built wheel excludes evaluator data/answers and passes
 isolated deterministic and scripted-agent execution outside the repository.
 
 The operator has already reported actual Zetaris runtime and pinned H-MEM bridge
-acceptance. Actual Ollama capability and the combined model-driven run remain
-**NOT_RUN here** because the remote development environment cannot reach the
-operator's local service. They must be established with the commands above.
+acceptance. The operator reported single-action Ollama capability PASS, followed by combined
+run failures on prompt version `investigator-2`. The `investigator-3` correction
+has automated state-contract and fake-HTTP coverage; actual local Ollama
+acceptance of the corrected pipeline is still pending because the remote
+development environment cannot reach the operator's local service.
 The release design's repeated actual-model scenario evaluations, source-linked
 semantic review, worker interruption/recovery, authenticated human-review UI and
 end-to-end release gates remain pending. GitHub-hosted CI is still subject to the

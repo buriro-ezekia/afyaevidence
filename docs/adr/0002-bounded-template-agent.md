@@ -23,3 +23,25 @@ remain awaiting human review. Broader reasoning and prose may be added only with
 separate semantic evaluation and review controls; they are not implied by this
 implementation. Optional Meterless Runtime inference remains separate from actual
 H-MEM reference use and the implemented Ollama provider.
+
+## Per-turn action contracts (investigator-3)
+
+A prompt-only instruction to avoid repeated calls did not prevent an installed
+small model from requesting the mandatory canonical comparison again, even after
+one correction. The provider was still advertising the global action schema.
+
+The loop now sends a finite schema generated from completed host actions and
+scoped evidence. Exact follow-up choices disappear after execution; quality,
+canonical comparison and memory recall remain host baselines. One matched
+variant completes that analysis. Stable evidence batches are grouped by table
+and reporting month and never contain records outside the frozen cutoff.
+Raw comparison is a prerequisite for a brief, and the final call is reserved for
+brief generation once prerequisites are met. References are constrained to shown
+aliases, then checked by the existing independent brief validator. These changes
+restrict scheduling and arguments; they do not select an explanation for the model.
+
+The host checks exact menu membership and duplicates before dependency execution,
+even when a provider ignores its schema. Hard call/deadline/repair limits remain
+unchanged. There is no automatic scripted fallback. Fake-HTTP integration can
+prove correct state transitions and formatting, but actual model acceptance must
+be reported separately from those tests.

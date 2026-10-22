@@ -3,13 +3,16 @@ import json
 import re
 import time
 from urllib.parse import urlsplit
+import urllib.error
 import urllib.request
 
 from .agent import ACTION_SCHEMA
 
 
 class ProviderError(RuntimeError):
-    pass
+    def __init__(self,code):
+        self.code=code
+        super().__init__(code)
 
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -33,42 +36,52 @@ class OllamaProvider:
 
     def request(self,path,body=None,timeout=30):
         if path not in ('/api/tags','/api/chat') or not 0<timeout<=180:
-            raise ProviderError('Invalid provider request')
+            raise ProviderError('model_invalid_request')
         payload=None if body is None else json.dumps(body,separators=(',',':'),allow_nan=False).encode()
-        if payload is not None and len(payload)>100000: raise ProviderError('Model context exceeds byte budget')
+        if payload is not None and len(payload)>100000: raise ProviderError('model_context_limit')
         request=urllib.request.Request(self.endpoint+path,data=payload,headers={'Content-Type':'application/json'})
         try:
             with self.opener.open(request,timeout=timeout) as response:
                 data=response.read(262145)
-                if response.status!=200 or len(data)>262144: raise ProviderError('Model response exceeds bounds')
+                if response.status!=200 or len(data)>262144: raise ProviderError('model_response_limit')
             result=json.loads(data)
-            if not isinstance(result,dict): raise ProviderError('Malformed provider response')
+            if not isinstance(result,dict): raise ProviderError('model_invalid_response')
             return result
-        except Exception:
-            raise ProviderError('Ollama unavailable, timed out or returned an invalid response; no fallback') from None
+        except ProviderError: raise
+        except TimeoutError:
+            raise ProviderError('model_timeout') from None
+        except urllib.error.HTTPError:
+            raise ProviderError('model_http_error') from None
+        except urllib.error.URLError as exc:
+            raise ProviderError('model_timeout' if isinstance(exc.reason,TimeoutError) else 'model_transport_error') from None
+        except OSError:
+            raise ProviderError('model_transport_error') from None
+        except (ValueError,RecursionError):
+            raise ProviderError('model_invalid_response') from None
 
     def models(self):
         result=self.request('/api/tags')
         if not isinstance(result.get('models'),list) or len(result['models'])>100:
-            raise ProviderError('Invalid model listing')
+            raise ProviderError('model_invalid_response')
         names=[m.get('name') for m in result['models'] if isinstance(m,dict)]
         if any(not isinstance(n,str) or not re.fullmatch(r'[A-Za-z0-9_./:-]{1,120}',n) for n in names):
-            raise ProviderError('Invalid model identifier in listing')
+            raise ProviderError('model_invalid_response')
         return names
 
-    def next_action(self,messages,*,timeout):
+    def next_action(self,messages,*,timeout,action_schema=None):
         start=time.monotonic()
         result=self.request('/api/chat',dict(model=self.model,messages=messages,stream=False,
-            format=ACTION_SCHEMA,options=dict(temperature=0,num_predict=768,num_ctx=8192)),timeout=timeout)
+            format=ACTION_SCHEMA if action_schema is None else action_schema,
+            options=dict(temperature=0,num_predict=768,num_ctx=8192)),timeout=timeout)
         message=result.get('message')
         if (result.get('done') is not True or result.get('model')!=self.model or not isinstance(message,dict) or
             not isinstance(message.get('content'),str) or len(message['content'].encode())>16384):
-            raise ProviderError('Incomplete or mismatched model response')
+            raise ProviderError('model_incomplete_or_mismatched')
         usage={}
         for field in ('prompt_eval_count','eval_count'):
             value=result.get(field)
             if value is not None and (type(value) is not int or value<0):
-                raise ProviderError('Invalid model usage metadata')
+                raise ProviderError('model_invalid_response')
             usage[field]=value
         return dict(content=message['content'],model=self.model,usage=usage,elapsed_seconds=time.monotonic()-start)
 
@@ -80,7 +93,7 @@ class ScriptedProvider:
 
     def __init__(self): self.calls=0
 
-    def next_action(self,messages,*,timeout):
+    def next_action(self,messages,*,timeout,action_schema=None):
         baseline=next(json.loads(m['content']) for m in messages if m['role']=='user' and 'reporting_quality' in m['content'])
         if self.calls==0:
             action=dict(type='tool_call',tool='compare_monthly_indicators',arguments=dict(view='raw_diagnostic'))

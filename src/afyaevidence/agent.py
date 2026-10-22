@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from copy import deepcopy
 import json
 import time
 import uuid
@@ -9,7 +10,7 @@ from fractions import Fraction
 
 from .snapshot import digest
 
-PROMPT_VERSION = 'investigator-2'
+PROMPT_VERSION = 'investigator-3'
 EXPLANATIONS = ('testing_change_supported','reporting_artefact_supported','mixed',
                 'unexplained','insufficient_data','no_canonical_change')
 LIMITATIONS = ('synthetic_data','no_causal_attribution','coverage_difference','historical_memory_only')
@@ -269,6 +270,53 @@ class ToolSession:
             semantic_review_required=True,approval=None)
 
 
+def turn_contract(session,completed,*,optional,remaining,tool_remaining):
+    """Finite host-owned choices; no model-created scope, query or evidence batch."""
+    def action(name,args): return dict(type='tool_call',tool=name,arguments=args)
+    raw=action('compare_monthly_indicators',{'view':'raw_diagnostic'})
+    done=[action(e['tool'],e['arguments']) for e in completed]
+    raw_done=raw in done
+    actions=[]
+    if tool_remaining>0:
+        if not raw_done: actions.append(raw)
+        # If the model inspected something else first, reserve the next call for
+        # raw version facts, which are needed to assess reporting artefacts.
+        if raw_done or optional==0:
+            if not any(e['tool']=='compare_matched_facilities' for e in completed):
+                actions += [action('compare_matched_facilities',{'include_contributions':v}) for v in (True,False)]
+            groups={}
+            for alias,e in session.evidence.items():
+                key=(e['table'],e['record'].get('period_month') or '')
+                groups.setdefault(key,[]).append(alias)
+            for key in sorted(groups):
+                ids=groups[key]
+                for start in range(0,len(ids),20):
+                    candidate=action('get_evidence_records',{'evidence_ids':ids[start:start+20]})
+                    if candidate not in done: actions.append(candidate)
+    allow_brief=optional>0 and raw_done
+    if allow_brief and remaining==1: actions=[]
+    variants=[]
+    for candidate in actions:
+        args=obj({k:dict(type='array' if isinstance(v,list) else 'boolean' if type(v) is bool else 'string',const=v)
+                  for k,v in candidate['arguments'].items()})
+        variants.append(obj(dict(type=dict(type='string',const='tool_call'),
+            tool=dict(type='string',const=candidate['tool']),arguments=args)))
+    if allow_brief:
+        brief=deepcopy(BRIEF_SCHEMA)
+        for name,aliases in (('metric_refs',session.shown_metrics),('evidence_ids',session.shown_evidence),
+                             ('review_context_ids',session.context)):
+            field=brief['properties'][name]
+            if aliases:
+                field['items']=dict(type='string',enum=sorted(aliases))
+                field['maxItems']=min(field['maxItems'],len(aliases))
+            else:
+                field['maxItems']=0
+        variants.append(brief)
+    schema=variants[0] if len(variants)==1 else dict(oneOf=variants)
+    return dict(schema=schema,actions=actions,allow_brief=allow_brief,
+                phase='brief' if allow_brief and not actions else 'investigate')
+
+
 def run_agent(bundle,provider,*,question='Investigate the reporting change and identify the next evidence checks.',
               recall=None,memory_as_of_utc=None,budget=None,cancelled=lambda:False,clock=time.monotonic):
     budget=budget or Budget()
@@ -278,7 +326,7 @@ def run_agent(bundle,provider,*,question='Investigate the reporting change and i
         normalise(memory_as_of_utc,'timestamp')
     session=ToolSession(bundle,recall=recall,memory_as_of_utc=memory_as_of_utc)
     start=clock(); calls=0; tool_count=0; repairs=0; optional=0; seen=set(); trace=[]; brief=None; failure=None
-    messages=[dict(role='system',content=SYSTEM+'\nACTION_SCHEMA='+json.dumps(ACTION_SCHEMA,separators=(',',':')))]
+    messages=[dict(role='system',content=SYSTEM)]
     def check():
         if cancelled(): raise ActionError('cancelled')
         if clock()-start>=budget.deadline_seconds: raise ActionError('deadline_exceeded')
@@ -309,11 +357,28 @@ def run_agent(bundle,provider,*,question='Investigate the reporting change and i
         baseline['completed_actions']=completed_actions()
         messages.append(dict(role='user',content=json.dumps(baseline,separators=(',',':'))))
         while calls<budget.model_calls:
-            check(); calls+=1
+            check()
+            contract=turn_contract(session,completed_actions(),optional=optional,
+                remaining=budget.model_calls-calls,tool_remaining=budget.tool_calls-tool_count)
+            if not contract['actions'] and not contract['allow_brief']:
+                raise ActionError('tool_budget_exhausted')
+            calls+=1
+            prompt=messages+[dict(role='system',content='CURRENT_ACTION_SCHEMA='+json.dumps(contract['schema'],separators=(',',':'))+
+                '\nChoose only an action permitted by this current schema. Completed calls are excluded. '+
+                ('Propose the evidence-linked brief now.' if contract['phase']=='brief' else
+                 'Inspect a new follow-up or propose a brief only when the schema permits it.'))]
+            trace.append(dict(kind='action_contract',call=calls,phase=contract['phase'],
+                              allowed_actions=contract['actions'],allow_brief=contract['allow_brief']))
             try:
-                response=provider.next_action(messages,timeout=min(180,budget.deadline_seconds-(clock()-start)))
-            except Exception:
+                response=provider.next_action(prompt,timeout=min(180,budget.deadline_seconds-(clock()-start)),
+                                              action_schema=contract['schema'])
+            except Exception as exc:
                 if clock()-start>=budget.deadline_seconds: raise ActionError('deadline_exceeded') from None
+                code=getattr(exc,'code',None)
+                if code in ('model_timeout','model_http_error','model_transport_error','model_context_limit',
+                            'model_response_limit','model_invalid_response','model_incomplete_or_mismatched'):
+                    trace.append(dict(kind='provider_error',call=calls,code=code))
+                    raise ActionError(code) from None
                 raise ActionError('model_provider_unavailable') from None
             check()
             if not isinstance(response,dict): raise ActionError('invalid_provider_response')
@@ -324,17 +389,21 @@ def run_agent(bundle,provider,*,question='Investigate the reporting change and i
                 action=parse_action(raw)
                 messages.append(dict(role='assistant',content=raw))
                 if action['type']=='tool_call':
+                    identity=json.dumps([action['tool'],action['arguments']],sort_keys=True,separators=(',',':'))
+                    if identity in seen: raise ActionError('repeated_tool_call')
+                    if action not in contract['actions']: raise ActionError('action_not_available')
                     output=tool(action['tool'],action['arguments'])
                     messages.append(dict(role='user',content=json.dumps(dict(tool_result=action['tool'],data=output),separators=(',',':'))))
                     continue
                 if optional==0: raise ActionError('follow_up_required')
+                if not contract['allow_brief']: raise ActionError('raw_comparison_required')
                 session.validate_brief(action)
                 brief=session.render(action)
                 break
             except ActionError as exc:
                 code=str(exc)
                 trace.append(dict(kind='validation_error',code=code))
-                if code in ('tool_budget_exhausted','cancelled','deadline_exceeded','tool_dependency_failed') or repairs>=1:
+                if code in ('tool_budget_exhausted','cancelled','deadline_exceeded','tool_dependency_failed') or repairs>=1 or calls>=budget.model_calls:
                     raise
                 repairs+=1
                 messages.append(dict(role='user',content=json.dumps(dict(validation_error=code,

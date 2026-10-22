@@ -57,6 +57,25 @@ class ModelTests(unittest.TestCase):
         with patch.object(self.provider.opener,'open',side_effect=TimeoutError('secret-token')):
             with self.assertRaises(ProviderError) as error: self.provider.next_action([],timeout=1)
         self.assertNotIn('secret-token',str(error.exception))
+        self.assertEqual('model_timeout',error.exception.code)
+
+    def test_supplied_turn_schema_reaches_http_instead_of_global_schema(self):
+        from afyaevidence.agent import obj
+        schema=obj(dict(type=dict(type='string',const='tool_call'),
+            tool=dict(type='string',const='compare_monthly_indicators'),
+            arguments=obj(dict(view=dict(type='string',const='raw_diagnostic')))))
+        Handler.body=dict(model='qwen2.5:3b',done=True,message=dict(content='{}'))
+        self.provider.next_action([],timeout=1,action_schema=schema)
+        self.assertEqual(schema,Handler.requests[0]['format'])
+        self.assertNotIn('canonical',json.dumps(Handler.requests[0]['format']))
+
+    def test_http_failure_is_distinct_without_exposing_body(self):
+        import urllib.error
+        error=urllib.error.HTTPError('http://local',500,'secret-token',None,None)
+        with patch.object(self.provider.opener,'open',side_effect=error):
+            with self.assertRaisesRegex(ProviderError,'model_http_error') as raised:
+                self.provider.next_action([],timeout=1)
+        self.assertNotIn('secret-token',str(raised.exception))
 
     def test_endpoint_credentials_paths_and_context_overflow_are_rejected(self):
         for endpoint in ('file:///etc/passwd','http://user:secret@localhost','http://localhost/api/chat','http://localhost?token=secret'):

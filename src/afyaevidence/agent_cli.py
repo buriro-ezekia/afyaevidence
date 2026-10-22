@@ -79,6 +79,8 @@ def main(argv=None):
     ready=result['execution_status']=='ready_for_review'
     print(f"DATA_MODE={args.data_mode}\nMODEL_MODE={args.model_provider}\nMEMORY_MODE={args.memory}")
     print(f"AGENT_EXECUTION={'PASS' if ready else 'FAIL'}\nEXECUTION_STATUS={result['execution_status']}")
+    for key in ('prompt_version','model_calls','tool_calls','repairs'):
+        if key in result: print(key.upper()+'='+str(result[key]))
     if ready:
         brief=result['candidate_brief']
         print(f"EXPLANATION={brief['explanation']}\nREVIEW_STATUS=awaiting_human_review")
@@ -90,6 +92,10 @@ def main(argv=None):
             print('MEMORY_PENDING_SYNC='+str(result['memory_pending_sync']))
     else:
         print('FAILURE_REASON='+str(result['failure_reason']))
+        for event in result.get('trace',[]):
+            if event['kind']=='model': print('MODEL_RESPONSE_SECONDS='+str(event.get('elapsed_seconds')))
+            elif event['kind'] in ('validation_error','provider_error'): print('ACTION_ERROR='+event['code'])
+            elif event['kind']=='tool': print('COMPLETED_TOOL='+event['name'])
     print(f'RECEIPT={args.output}')
     return 0 if ready else 1
 

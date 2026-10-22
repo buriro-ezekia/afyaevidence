@@ -23,7 +23,7 @@ class FakeProvider:
     mode='scripted'
     model='test-sequence'
     def __init__(self,actions): self.actions=iter(actions)
-    def next_action(self,messages,*,timeout):
+    def next_action(self,messages,*,timeout,action_schema=None):
         action=next(self.actions)
         if callable(action): action=action(messages)
         return dict(content=action if isinstance(action,str) else json.dumps(action),model=self.model,usage=None)
@@ -73,7 +73,7 @@ class AgentTests(unittest.TestCase):
         first=True
         class RepairProvider:
             mode='scripted';model='repair-test'
-            def next_action(self,messages,*,timeout):
+            def next_action(self,messages,*,timeout,action_schema=None):
                 nonlocal first
                 if first:
                     first=False
@@ -103,7 +103,7 @@ class AgentTests(unittest.TestCase):
         class RepeatThenRepair:
             mode='scripted';model='mandatory-repeat-regression'
             first=True
-            def next_action(inner,messages,*,timeout):
+            def next_action(inner,messages,*,timeout,action_schema=None):
                 if inner.first:
                     inner.first=False
                     baseline=json.loads(messages[1]['content'])
@@ -133,6 +133,7 @@ class AgentTests(unittest.TestCase):
         self.assertEqual('model_budget_exhausted',result['failure_reason'])
         result=run_agent(self.bundle(),FakeProvider([tool()]),budget=Budget(tool_calls=2))
         self.assertEqual('tool_budget_exhausted',result['failure_reason'])
+        self.assertEqual(0,result['model_calls'])
         with self.assertRaises(ValueError): Budget(model_calls=5)
 
     def test_cancellation_and_deadline_stop_before_dispatch(self):
