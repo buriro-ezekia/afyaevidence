@@ -15,6 +15,7 @@
     "src/trustLedger.ts": "263253dd3342c488ce773d7e728d77aec983c1833873602b59ce1a6c7999e20e",
     "src/memoryMining.ts": "6072693d654ea1c34a9adbf6ce80101eeb1eeb56273d264f6ceb4859ffde6562",
     "src/memoryRetrieval.ts": "4fe120b1b64fe7225b9b28fda59514c114de9e885d22c5bf0aa035788b6d629d",
-    "src/sleepCycle.ts": "3ce0d4f3233d0ad7c133a2cbaf39b6122467022e0aa378a160a0d463e2264cef"
+    "src/sleepCycle.ts": "3ce0d4f3233d0ad7c133a2cbaf39b6122467022e0aa378a160a0d463e2264cef",
+    "package.json": "982b032b671667f6c3c2f857ab0791a8f78f9574957410dcd1d0a65119cde18d"
   }
 }

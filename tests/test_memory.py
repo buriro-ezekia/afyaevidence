@@ -6,10 +6,12 @@ import shutil
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path[:0]=[str(ROOT/'src'),str(ROOT)]
-from afyaevidence.memory import HmemBridge, MemoryError, ReviewStore, Scope, verify_upstream
+from afyaevidence.memory import HmemBridge, MemoryError, ReviewStore, Scope, verify_upstream, node_runtime
 
 BRIDGE=ROOT/'bridges/hmem'
 
@@ -162,6 +164,30 @@ class MemoryTests(unittest.TestCase):
             with HmemBridge(root=self.root/'stores',bridge_dir=alternate,scope=self.scope,reviews=self.reviews,timeout=0.1):
                 pass
         with self.bridge() as bridge:
+            self.assertEqual([],bridge.audit()['records'])
+
+    def test_wrong_node_version_and_windows_node_have_actionable_errors(self):
+        for metadata, message in ((dict(version='18.20.0',platform='linux'),'requires Linux Node 24'),
+                                   (dict(version='24.16.0',platform='win32'),'not a Linux executable')):
+            with patch('afyaevidence.memory.subprocess.run',return_value=SimpleNamespace(returncode=0,stdout=json.dumps(metadata))):
+                with self.assertRaisesRegex(MemoryError,message): node_runtime()
+
+    def test_missing_node_message_is_preserved_by_context_manager(self):
+        with self.assertRaisesRegex(MemoryError,'executable not found'):
+            with self.bridge(node='/nonexistent/node'): pass
+
+    def test_existing_specific_startup_failure_is_not_masked(self):
+        with patch('afyaevidence.memory.verify_upstream',side_effect=MemoryError('Pinned upstream source differs')):
+            with self.assertRaisesRegex(MemoryError,'Pinned upstream source differs'):
+                with self.bridge(): pass
+
+    def test_module_loading_is_independent_of_commonjs_parent(self):
+        parent=self.root/'commonjs-parent'
+        parent.mkdir()
+        (parent/'package.json').write_text('{"type":"commonjs"}')
+        isolated=parent/'bridge'
+        shutil.copytree(BRIDGE,isolated)
+        with HmemBridge(root=self.root/'stores',bridge_dir=isolated,scope=self.scope,reviews=self.reviews) as bridge:
             self.assertEqual([],bridge.audit()['records'])
 
 

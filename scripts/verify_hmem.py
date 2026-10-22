@@ -12,7 +12,7 @@ import uuid
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'src'))
 from afyaevidence.analysis import investigate
-from afyaevidence.memory import HmemBridge, ReviewStore, Scope, PIN
+from afyaevidence.memory import HmemBridge, ReviewStore, Scope, PIN, MemoryError, node_runtime, verify_upstream
 from afyaevidence.snapshot import FixtureGateway
 
 
@@ -21,8 +21,21 @@ def main(argv=None):
     parser.add_argument('--analysis',type=Path,help='Prior analysis receipt supplying source provenance; no new JDBC call')
     parser.add_argument('--output',type=Path,help='Create a new check receipt without overwriting')
     parser.add_argument('--node',default='node')
+    parser.add_argument('--doctor',action='store_true',help='Check Linux Node 24, source hashes and helper handshake only')
     args=parser.parse_args(argv)
     try:
+        if args.doctor:
+            runtime = node_runtime(args.node)
+            print(f"NODE_VERSION={runtime['version']}\nNODE_PLATFORM={runtime['platform']}",flush=True)
+            verify_upstream(ROOT/'bridges/hmem')
+            print('HMEM_SOURCE_INTEGRITY=PASS',flush=True)
+            with tempfile.TemporaryDirectory(prefix='afya-hmem-doctor-') as temp:
+                root=Path(temp)
+                with HmemBridge(root=root/'stores',bridge_dir=ROOT/'bridges/hmem',scope=Scope('doctor','D001'),
+                                reviews=ReviewStore(root/'reviews.sqlite3'),node=args.node):
+                    pass
+            print('HMEM_STARTUP=PASS')
+            return 0
         if args.output and args.output.exists(): raise ValueError('Output exists')
         if args.analysis:
             raw=args.analysis.read_bytes()
@@ -77,6 +90,9 @@ def main(argv=None):
     except (KeyboardInterrupt,EOFError):
         print('HMEM_REFERENCE=INTERRUPTED',file=sys.stderr)
         return 2
+    except MemoryError as exc:
+        print(('HMEM_STARTUP=FAIL' if args.doctor else 'HMEM_REFERENCE=FAIL')+'\n'+str(exc),file=sys.stderr)
+        return 1
     except Exception:
         print('HMEM_REFERENCE=FAIL\nCheck Node 24, pinned sources, receipt and local storage; no fallback. Raw errors withheld.',file=sys.stderr)
         return 1

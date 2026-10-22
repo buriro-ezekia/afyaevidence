@@ -132,6 +132,29 @@ def verify_upstream(bridge_dir):
         raise MemoryError('Cannot verify pinned H-MEM source') from None
 
 
+def node_runtime(node='node'):
+    """Probe only fixed runtime metadata; never print arbitrary executable output."""
+    try:
+        result = subprocess.run([node, '-p', 'JSON.stringify({version:process.versions.node,platform:process.platform})'],
+                                capture_output=True, text=True, timeout=5)
+    except FileNotFoundError:
+        raise MemoryError('Linux Node 24 executable not found in this Ubuntu terminal') from None
+    except (OSError, subprocess.TimeoutExpired):
+        raise MemoryError('Node runtime metadata check failed or timed out') from None
+    try:
+        metadata = json.loads(result.stdout)
+        version, platform = metadata['version'], metadata['platform']
+        if result.returncode != 0 or not re.fullmatch(r'[0-9]+\.[0-9]+\.[0-9]+', version):
+            raise ValueError('Invalid version')
+    except (ValueError, KeyError, TypeError):
+        raise MemoryError('Node returned invalid runtime metadata; use Linux Node 24') from None
+    if platform != 'linux':
+        raise MemoryError('Node is not a Linux executable; use Node 24 installed inside Ubuntu/WSL')
+    if version.split('.')[0] != '24':
+        raise MemoryError(f'Node {version} detected; this bridge requires Linux Node 24.x')
+    return dict(version=version, platform=platform)
+
+
 class HmemBridge:
     def __init__(self, *, root, bridge_dir, scope, reviews, node='node', timeout=10):
         self.root, self.bridge_dir = Path(root).resolve(), Path(bridge_dir).resolve()
@@ -143,6 +166,7 @@ class HmemBridge:
     def __enter__(self):
         try:
             verify_upstream(self.bridge_dir)
+            node_runtime(self.node)
             self.directory.mkdir(parents=True, exist_ok=True)
             self.lock = (self.directory / '.scope.lock').open('a+b')
             deadline = time.monotonic() + self.timeout
@@ -166,7 +190,9 @@ class HmemBridge:
             self.close()
             if isinstance(exc, (KeyboardInterrupt, SystemExit)):
                 raise
-            raise MemoryError('H-MEM unavailable, corrupt or scope locked; no fallback') from None
+            if isinstance(exc, MemoryError):
+                raise
+            raise MemoryError('H-MEM startup failed before handshake; check Node 24 and local storage') from None
 
     def __exit__(self, *args):
         self.close()
@@ -208,7 +234,7 @@ class HmemBridge:
                         raise MemoryError('Memory helper timed out')
                     chunk = os.read(self.process.stdout.fileno(), 8192)
                     if not chunk:
-                        raise MemoryError('Memory helper exited')
+                        raise MemoryError(f'Memory helper exited before replying (exit code {self.process.poll()}); run verify_hmem.py --doctor')
                     self.buffer += chunk
                     if len(self.buffer) > 65536:
                         raise MemoryError('Memory helper response exceeded limit')

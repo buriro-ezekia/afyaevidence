@@ -1,7 +1,7 @@
 # Pinned Meterless H-MEM bridge
 
 The bridge executes the actual Meterless reference at commit
-`1742dec56a66e58eef9dda2d2b865823758ca8cd`. Its ten TypeScript modules, README and
+`1742dec56a66e58eef9dda2d2b865823758ca8cd`. Its ten TypeScript modules, original package.json module metadata, README and
 Apache-2.0 licence are vendored unchanged under `bridges/hmem/upstream`.
 `upstream.lock.json` pins their SHA-256 hashes. The copies were also reconciled
 against the original Git blob hashes. See `bridges/hmem/ATTRIBUTION.md`.
@@ -19,7 +19,7 @@ In your existing repository terminal:
 
 ```bash
 git pull --ff-only origin codex/architecture-and-jdbc-probe
-node --version
+python scripts/verify_hmem.py --doctor
 python -m unittest discover -s tests -v
 python scripts/verify_hmem.py \
   --analysis runtime/revision-zetaris-analysis.json \
@@ -133,7 +133,7 @@ numeric evidence or integrated-agent completion.
 
 ## Recorded checks
 
-Local checks on 22 October 2026: **80 tests passed**, including 13 tests that launch
+Local checks on 22 October 2026: **84 tests passed**, including 17 tests that launch
 the actual pinned Node/TypeScript reference. Checks cover restart persistence,
 source/audit provenance, district/family and temporal isolation, corrupted/lost
 projection detection, event idempotency, post-write outbox retry, cross-process
@@ -149,3 +149,20 @@ smoke plus the full suite. The known GitHub Actions account budget/startup block
 still prevents claiming hosted validation. The operator's live Zetaris runtime
 PASS was reported separately; their own local H-MEM receipt is the next check.
 The model, integrated agent, authenticated review UI and deployment remain pending.
+
+## Startup portability and diagnosis
+
+The original upstream `package.json` is now included and hash-pinned. Its
+`type=module` makes the TypeScript reference independent of a surrounding CommonJS
+checkout. No upstream dependency installation is required. A regression test
+launches the actual helper beneath a parent declaring CommonJS.
+
+Run `python scripts/verify_hmem.py --doctor` before repeating a failing full suite.
+It checks only fixed Node version/platform metadata, upstream hashes and a fresh
+temporary helper handshake. It needs no credentials or analysis receipt. Linux
+Node 24 is required inside Ubuntu: a Windows node.exe inherited through PATH does
+not satisfy that requirement. Wrong/missing Node versions, source integrity and
+lock/protocol errors now retain specific safe messages instead of being replaced
+with one generic startup error. Arbitrary driver/helper stderr is still withheld.
+A diagnostic PASS does not itself establish note persistence or scope acceptance;
+run the full suite and smoke afterwards.

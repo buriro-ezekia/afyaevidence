@@ -1,6 +1,6 @@
 # Meterless H-MEM attribution
 
-The `upstream/src` files, `upstream/README.md` and `upstream/LICENSE` are copied
+The `upstream/src` files, `upstream/package.json`, `upstream/README.md` and `upstream/LICENSE` are copied
 unchanged from Meterless/Meterless commit
 `1742dec56a66e58eef9dda2d2b865823758ca8cd` (Apache-2.0). Their original location is
 `engines/hmem/reference/`, except the licence, which comes from the repository root.
