@@ -214,3 +214,49 @@ The expected immutable stored state is review revision 1 / disposition
 The GitHub Actions administrative budget restriction is reported by the
 operator, but no GitHub billing notice was examined in this record. Hosted
 CI is not considered PASS. The PR remains unmerged pending further review.
+
+## Final dashboard acceptance and follow-up hardening
+
+The operator's 22 October 2026 browser screenshot **confirmed** the full
+synthetic investigation panel displayed the corrected values:
+
+| Metric | October 2025 | November 2025 |
+| --- | ---: | ---: |
+| Canonical positives | 100 | 100 |
+| Raw diagnostic positives | 100 | 120 |
+| Canonical tested | 500 | 500 |
+| Canonical positivity | 20% | 20% |
+
+Six matched facility rows, revision history and the disabled repeat-disposition
+control were also visible. **LOCAL_DASHBOARD=PASS**. This complements the
+operator's `160 tests in 34.642s: OK` log for the prior code state.
+Neither proves clinical approval.
+
+Additional hardening committed *after* that local run:
+
+- Review POST requests now reject foreign `Origin` values (403) and
+  non-JSON content types (415). This protects the local bearer-token
+  write endpoint but is not a substitute for production authentication.
+- `python -m afyaevidence.job_audit --state-dir runtime/jobs`
+  examines preserved job start/final event pairs. An absent final event
+  becomes `needs_operator_reconciliation`, **not** automatic restart,
+  failure rewriting, or success. Exit status is nonzero when reconciliation
+  remains outstanding.
+- Regression tests cover missing/corrupt job events and preservation of
+  previous records. These newer tests have **not** been included in the
+  previously reported 160-test PASS.
+
+Acceptance steps for the new commit:
+
+```bash
+export PYTHONPATH="$PWD/src${PYTHONPATH:+:$PYTHONPATH}"
+python -m unittest discover -s tests -v 2>&1 | tee runtime/review-hardening-final-tests.log
+python -m afyaevidence.job_audit --state-dir runtime/jobs
+```
+
+A nonzero audit exit with unfinished historical jobs is expected and should
+trigger manual investigation, not deletion. Do not overwrite or re-submit
+the accepted review. The protected API remains loopback-only.
+Production-grade reviewer identity, per-role authorisation, full worker
+recovery/queue, cancellation, load tests and secured deployment remain
+unimplemented and must be independently accepted.
