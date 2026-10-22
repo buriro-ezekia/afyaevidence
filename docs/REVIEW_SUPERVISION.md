@@ -4,6 +4,126 @@ This branch is based on PR #1 at `0fd52a1`. It does **not** merge PR #1,
 constitute deployment approval or validate the October 22 live receipt.
 It adds a loopback-only review surface and a separate child-process supervisor.
 
+## PR #2 engineering corrections — 22 October 2026
+
+This section supersedes the verification status of the historical entries below.
+The operator-reported starting baseline was 162 tests in 35.261 seconds and an
+empty job audit. Neither pull request has been merged.
+
+### Changes and migration contract
+
+- Review schema version 2 adds `execution_json` and `provenance_status` in a
+  transaction. Existing receipt hashes, candidate/evidence JSON, timestamps,
+  revisions and review rows are preserved. The migration reads the original
+  receipt only when its bytes match the stored SHA-256 and its identity,
+  snapshot and content match the imported record. Missing or changed originals
+  produce explicit `legacy_unavailable`, `legacy_hash_mismatch` or
+  `legacy_content_mismatch` states. No analysis `not_run` field is used to infer
+  execution. Exact re-import can recover missing provenance; conflicting
+  content cannot. Future schema versions are rejected.
+- The API exposes top-level data/provider/model/memory/profile, execution
+  bounds, counters and available verification fields. The dashboard displays
+  these modes separately from analysis evidence. Receipt claims are hash-bound
+  provenance, not signed attestations or an independent live verification.
+- Imports bind both Run ID and resolved receipt path to the original bytes.
+  Identical retries are idempotent; changed bytes, another path for the same
+  ID, or another ID for the same path fail explicitly without replacing rows.
+- Review retries bind the event key to reviewer, expected revision, decision
+  and reason. Concurrent writers are serialized; reads use a consistent
+  snapshot for the current revision and history. One disposition remains final.
+- The HTTP body cap is 32,768 bytes, accommodating a 2,000-character reason
+  even when every non-BMP character uses JSON surrogate escapes. The existing
+  trimmed 10–2,000-character contract remains enforced. Excess envelope padding
+  is still bounded. Malformed/duplicate-key/nonfinite JSON, invalid Unicode,
+  ambiguous body framing and unsupported content types fail closed. Host and
+  Origin checks reject foreign browser origins; raw request/error logging is
+  suppressed and database connections close after requests.
+- Linux supervision handles SIGTERM and SIGINT, terminates the complete child
+  process group (including descendants after leader exit), waits/reaps, writes
+  the final event, then closes worker ownership. A five-second TERM grace is
+  followed by KILL. The child inherits the lock descriptor so abrupt supervisor
+  death does not immediately free the slot. Unfinished/invalid event records
+  independently block replacement until operator reconciliation. Interrupted
+  model calls are never automatically replayed. The review bearer capability
+  is removed from the worker environment.
+- Job audit now rejects malformed final states, incomplete cleanup and orphan
+  final records. Package verification explicitly permits the four operator
+  modules already shipped on this branch while retaining the strict exclusion
+  of evaluator keys, data, credentials and unexpected wheel members.
+
+Migration occurs on the first database connection/import. Stop the old reviewer process and
+take a consistent SQLite backup before restarting the updated service in Ubuntu
+with the same database and token. Do not submit another disposition to test it.
+Do not move/rewrite original receipts to hide a migration conflict. An unavailable
+original remains unavailable until its exact original bytes/path can be restored.
+
+### Executed verification
+
+The assistant executed checks in WSL Ubuntu, Python 3.12.3 and Node 24.22.1.
+The final full suite ran **178 tests in 68.995 seconds: OK**, with no skips.
+Its local log is `runtime/pr2-corrections-final-tests-20261022.log` (gitignored).
+
+| Check | Observed result |
+| --- | --- |
+| Final full regression run | 178 tests, 68.995 seconds, OK; 16 tests added to the 162-test baseline |
+| Initial full regression run | 176 tests, 68.762 seconds, OK; followed by two additional regressions |
+| Probe bytes and fixture source contract | PASS; six fixture rows; live JDBC NOT_RUN |
+| Synthetic regeneration and independent evaluation | PASS; 15 snapshots and 16 evaluation cases |
+| Snapshot verifier and deterministic analysis | PASS; canonical positives 100/100, raw positives 100/120 |
+| Pinned H-MEM reference | PASS: persistence, provenance, scope, chronology and outbox retry; mock hash embeddings |
+| Scripted agent | PASS: 16 cases × standard/CPU profiles = 32 executions; live model NOT_RUN |
+| Built wheel and isolated execution | PASS: package exclusion guard, deterministic CLI and both scripted profiles |
+| Existing job audit | `[]`, exit 0; no events altered |
+| Existing review DB migration rehearsal | PASS on a temporary SQLite backup in Ubuntu; one run and one review preserved exactly |
+
+The actual backup rehearsal recovered `zetaris / ollama / qwen2.5:1.5b /
+hmem_reference / cpu` from the hash-matching original receipt, preserving
+`run_a0dfd33e79a14482aca3149bd96aadac`, revision 1 and `accept`. The original
+database was opened read-only and was **not migrated**. A Windows backup
+rehearsal correctly reported `legacy_unavailable` because the stored Linux
+receipt path was unavailable there. This verifies migration behavior, not a
+new live Zetaris/Ollama execution or renewed semantic approval.
+
+An earlier native Windows review-test run had two temporary SQLite cleanup
+errors caused by existing tests retaining connections; the seven test assertions
+otherwise passed. Ubuntu is the supported supervisor target. The complete
+Ubuntu run, rather than that Windows attempt, is the local acceptance gate.
+
+### Independent completeness and security assessment
+
+A separate source-and-regression review covered these boundaries; no external
+penetration test, formal security-tool scan or independent human audit is claimed.
+
+| Boundary | Finding and acceptance limit |
+| --- | --- |
+| Authentication/authorization | API reads/writes require bearer capability; empty/short configuration fails, Host/Origin checked. Public loopback page has no record data. Still one shared local capability, without SSO, roles, expiration or rate limiting. |
+| Identity/history | Client cannot supply reviewer identity. Server records `local_operator`, not a verified person. Transaction/revision/idempotency regressions pass; direct database administrator writes remain outside this application's immutability guarantee. |
+| Provenance/evidence | Exact-byte hash and original-content checks protect imports/migration; missing provenance is explicit. Local operator-controlled receipts are not cryptographically authenticated producer attestations. |
+| Concurrent submissions | Competing decisions produce exactly one history row; mismatched actor/revision retries reject. No additional disposition can replace an accepted record. |
+| Lifecycle/restart | Real-process tests exercise TERM, INT, timeout escalation, exited leaders, lock contention during cleanup and abrupt KILL. KILL cannot write a final event; manual reconciliation is mandatory. No automatic retry/queue is implemented. |
+| Secrets | No credential values added to code/receipts/tests; child logs suppressed, HTTP errors sanitized and review token excluded from worker environment. Authorized JDBC credentials still enter the worker environment; OS account isolation remains necessary. |
+| Model/memory isolation | Existing tool allowlist and reference validation remain intact. No reviewer capability is added to agent tools. Scope/cutoff/outbox tests run against pinned H-MEM; historical notes remain untrusted context, never current arithmetic. |
+| Failure handling | Existing provider, JDBC and memory failure regressions run; failed live dependencies do not become fixture success. This correction cycle did not rerun live JDBC or inference. |
+| Deployment | Local development acceptance only. Hosted CI/deployment smoke, individual identity, operational monitoring and recovery procedures remain outstanding. |
+
+All supervisors must share one trusted local state directory. The Linux
+`flock`/subreaper design is not distributed coordination or a hostile-process
+sandbox. Descendants deliberately escaping the process group require cgroup
+containment in a future service deployment. An uninterruptible kernel process
+can keep cleanup/ownership pending; investigate it rather than starting a
+replacement. Do not delete unfinished events or locks to force a retry. First
+prove old workers are gone, inspect partial receipts, and record an authorized
+operator reconciliation; this slice supplies no automated recovery writer.
+
+**Acceptance:** the scoped corrections have local regression evidence; current
+browser visual acceptance, hosted CI, deployment acceptance, production
+readiness and clinical approval are not asserted. GitHub Actions budget
+restrictions remain administrative and separate from application failures;
+no hosted PASS or budget bypass is claimed. Recommended next milestone:
+individual reviewer identity/authorization plus a service-level cgroup worker
+and explicit audited crash reconciliation, followed by controlled deployment
+smoke and operational acceptance. Preserve both PRs unmerged for review.
+
 ## Review service
 
 Prerequisites: Python >= 3.12, editable project installed; run from repo root.

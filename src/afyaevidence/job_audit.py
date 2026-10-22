@@ -10,18 +10,22 @@ def audit_jobs(state_dir: Path):
     results=[]
     if not state_dir.exists():
         return results
-    for path in sorted(state_dir.glob("job_*.json")):
-        if path.name.endswith(".final.json"):
-            continue
+    names={p.name.replace('.final.json','.json') for p in state_dir.glob('job_*.json')}
+    for name in sorted(names):
+        path=state_dir/name
         job_id=path.stem
         final=state_dir/(job_id+".final.json")
         try:
             initial=json.loads(path.read_text(encoding="utf-8"))
-            if initial.get("job_id")!=job_id or initial.get("state")!="running":
+            if not isinstance(initial,dict) or initial.get("job_id")!=job_id or initial.get("state")!="running":
                 state="invalid_start_record"
             elif final.exists():
                 completed=json.loads(final.read_text(encoding="utf-8"))
-                state="finalised" if completed.get("job_id")==job_id else "invalid_final_record"
+                valid=(isinstance(completed,dict) and completed.get("job_id")==job_id
+                       and isinstance(completed.get("state"),str)
+                       and completed.get("state") in {"finished","failed","timed_out","cancelled","interrupted","busy"}
+                       and completed.get("cleanup_complete",True) is True)
+                state="finalised" if valid else "invalid_final_record"
             else:
                 state="needs_operator_reconciliation"
         except (OSError,ValueError):

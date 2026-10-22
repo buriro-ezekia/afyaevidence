@@ -33,6 +33,7 @@ table{border-collapse:collapse;width:100%;font-size:14px}th,td{padding:10px;text
 <section id="dashboard" hidden>
 <div class="panel"><h2>Investigation overview <span id="status" class="pill"></span></h2>
 <p id="summary"></p><p class="small muted" id="identity"></p>
+<p id="executionModes" class="small"></p><p id="provenanceState" class="small muted"></p>
 <div class="metricGrid" id="metrics"></div>
 <h3>Monthly comparison</h3><div class="tableWrap"><table><thead><tr><th>Period</th><th>Canonical positives</th><th>Raw positives</th><th>Canonical tested</th><th>Canonical positivity</th></tr></thead><tbody id="comparison"></tbody></table></div></div>
 <div class="two"><div class="panel"><h2>Report-version history</h2><p class="small muted">Raw totals include report versions; canonical totals apply the reviewed version-selection policy.</p>
@@ -60,6 +61,9 @@ current=r;submissionKey=null;$("dashboard").hidden=false;$("raw").textContent=JS
 const c=r.candidate||{},e=r.evidence||{},items=c.numerical_statements||[];
 $("summary").textContent=c.summary||"No candidate summary";$("status").textContent=r.disposition||c.review_status||"Unknown";
 $("identity").textContent="Run "+r.run_id+" · Snapshot "+r.snapshot_id+" · Revision "+r.revision;
+const execution=r.execution||{};
+$("executionModes").textContent="Data: "+fmt(execution.data_mode)+" · Provider: "+fmt(execution.model_mode)+" · Model: "+fmt(execution.model)+" · Memory: "+fmt(execution.memory_mode)+" · Profile: "+fmt(execution.execution_profile);
+$("provenanceState").textContent=r.provenance_status==="receipt_top_level"?"Execution metadata from the hash-bound imported receipt; not independent live verification.":"Execution provenance unavailable: "+fmt(r.provenance_status)+". Analysis placeholders do not establish execution modes.";
 // Host-calculated metrics are authoritative; the model-selected brief need not enumerate them.
 const data={};
 for(const m of (e.metrics||[])){

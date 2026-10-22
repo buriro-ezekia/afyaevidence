@@ -26,4 +26,19 @@ class RestartAuditTests(unittest.TestCase):
             p.write_text("{oops")
             self.assertEqual(audit_jobs(Path(d))[0]["state"],"corrupt_event_record")
 
+    def test_invalid_final_states_and_orphans_never_clear_restart_gate(self):
+        with TemporaryDirectory() as d:
+            root=Path(d)
+            start=root/"job_test.json"
+            final=root/"job_test.final.json"
+            start.write_text(json.dumps({"job_id":"job_test","state":"running"}))
+            for value in ([], {"job_id":"job_test","state":"running"},
+                          {"job_id":"job_test","state":[]},
+                          {"job_id":"job_test","state":"failed","cleanup_complete":False}):
+                final.write_text(json.dumps(value))
+                self.assertEqual(audit_jobs(root)[0]["state"],"invalid_final_record")
+            start.unlink()
+            self.assertEqual(audit_jobs(root)[0]["state"],"corrupt_event_record")
+            self.assertTrue(final.exists())
+
 if __name__=="__main__":unittest.main()
