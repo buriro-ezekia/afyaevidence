@@ -12,7 +12,7 @@ application. It requires:
 - Trusted HTTPS issuer, JWKS and introspection URLs, with issuer and exact
   string audience matching the signed JWT and introspection response.
 - RS256, an access-token **header** `typ: at+jwt` (NOT `JWT`),
-  `sub`, `jti`, `iat`, `nbf`, `exp`, and a flat **list** claim `roles`.
+  `sub`, `jti`, `iat`, `exp`, and a flat **list** claim `roles`. The optional `nbf` claim is validated when supplied; when absent, the verified `iat` serves as the lower time bound.
 - Three distinct accounts, each assigned exactly one of `viewer`,
   `reviewer`, `administrator`, and a token lifetime up to 900 seconds.
 - Confidential introspection client credentials and **online introspection on
