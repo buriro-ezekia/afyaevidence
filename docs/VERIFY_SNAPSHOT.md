@@ -126,3 +126,13 @@ original/full-suite reproducibility passed, and snapshot offline preflight passe
 Fake transports tested success and failures without credentials/JVM. Actual new
 live JDBC execution is NOT_RUN in this remote environment; the operator must run
 the command above on their machine. Model and H-MEM integration remain pending.
+
+## Operator-reported live acceptance
+
+The operator subsequently ran the verifier successfully for `fx_32e8b610` in
+`AFYAEVIDENCE_REVISION`: all three canonical hashes matched, joined rows were 145,
+and final `ZETARIS_REFERENCE_PARITY=PASS` / `ZETARIS_SNAPSHOT=PASS` were reported.
+Manifest SHA-256: `c37ec7f8227a91cb139b4ae4b121590966bf0b947882c0db732bfb62de121649`.
+Canonical target totals were 500 tested / 100 positive; raw target totals 600 / 120.
+This is operator-reported real execution, distinct from fake transports run here.
+The packaged runtime layer is documented in [RUNTIME_ANALYSIS.md](RUNTIME_ANALYSIS.md).

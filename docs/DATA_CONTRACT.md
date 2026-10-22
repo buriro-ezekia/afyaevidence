@@ -1,6 +1,6 @@
 # AfyaEvidence data contract
 
-Status: the synthetic suite, strict source normalisation and evaluator reference implement the fixture subset described in [SYNTHETIC_DATA.md](SYNTHETIC_DATA.md). Runtime evidence services and three-table live JDBC parity remain pending. The original six-row probe passed on the operator's machine.
+Status: the synthetic suite, strict source normalisation and evaluator reference implement the fixture subset described in [SYNTHETIC_DATA.md](SYNTHETIC_DATA.md). The [runtime snapshot/analysis layer](RUNTIME_ANALYSIS.md) is implemented with local tests. The operator reported the original probe and full three-table verifier PASS; the new runtime CLI's real execution receipt remains pending. Model tools, worker and review services remain planned.
 
 ## Dataset and scope
 

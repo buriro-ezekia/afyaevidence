@@ -1,6 +1,6 @@
 # AfyaEvidence implementation instructions
 
-This repository contains the architecture and a small source-access probe. Read README.md, docs/FIRST_DATA_ACCESS.md and docs/ARCHITECTURE.md, then implement the ordered issues in docs/IMPLEMENTATION.md. Do not claim sponsor integration, the agent application or deployment is complete until the relevant checks actually run.
+This repository contains the architecture, source-access verifiers, synthetic suite and bounded runtime snapshot/analysis package. Read README.md, docs/FIRST_DATA_ACCESS.md and docs/ARCHITECTURE.md, then implement the ordered issues in docs/IMPLEMENTATION.md. Do not claim sponsor integration, the agent application or deployment is complete until the relevant checks actually run.
 
 - Build the scoped synthetic malaria reporting investigation workflow. Keep diagnosis, treatment, outbreak declaration, real patient data, forecasting and source edits outside this increment.
 - Use the user's exact Zetaris JAR and `com.zetaris.lightning.jdbc.LightningDriver`; execute one Lightning statement per call. Never start Spark or use a Hive/Spark substitute driver.

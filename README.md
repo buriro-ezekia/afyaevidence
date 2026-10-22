@@ -2,7 +2,7 @@
 
 An evidence-grounded malaria reporting investigation agent for a district reporting reviewer.
 
-**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The new three-table live reconciliation, investigation agent and H-MEM integration remain pending.
+**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The operator has also reported full three-table live hash/join/reference verification. Runtime immutable snapshots, fixture/JDBC gateways and deterministic scoped analysis are implemented; the new runtime CLI's own live run, investigation agent and H-MEM integration remain pending.
 
 Repository: [buriro-ezekia/afyaevidence](https://github.com/buriro-ezekia/afyaevidence).
 
@@ -19,6 +19,7 @@ python scripts/verify_zetaris.py --check-fixture
 python scripts/generate_synthetic.py --check
 python scripts/evaluate_synthetic.py
 python scripts/verify_zetaris_snapshot.py --check-fixture
+python scripts/analyse_snapshot.py --mode fixture --snapshot data/synthetic/fx_32e8b610
 python -m unittest discover -s tests -v
 ```
 
@@ -38,6 +39,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Components, dependency boundaries, investigation lifecycle, deployment and failure handling |
 | [First data access](docs/FIRST_DATA_ACCESS.md) | Six-row JDBC probe and operator-reported live acceptance |
+| [Runtime analysis](docs/RUNTIME_ANALYSIS.md) | Immutable snapshots, explicit fixture/JDBC gateways, scoped facts and JSON receipts |
 | [Three-table verification](docs/VERIFY_SNAPSHOT.md) | Exact live JDBC hashes, join and reference parity |
 | [Synthetic data](docs/SYNTHETIC_DATA.md) | Fifteen reproducible snapshots, evaluator answers, checks and source-only staging |
 | [Data contract](docs/DATA_CONTRACT.md) | Three source tables, observation cutoffs, revision resolution and indicator semantics |
@@ -49,9 +51,9 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 
 ## Start implementation
 
-The six-row live project-table gate passed on the operator's machine. Next stage one new three-table snapshot using the [synthetic-data guide](docs/SYNTHETIC_DATA.md), register it through the proven NDP File System route without replacing the probe, then reconcile actual JDBC results against the reference.
+The original probe and full three-table JDBC verifier passed on the operator's machine. Next run the packaged [runtime analysis layer](docs/RUNTIME_ANALYSIS.md) against the registered revision source and retain its private snapshot and scoped analysis receipts.
 
-The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime analysis service, UI, model loop and memory bridge do not. The existing working JDBC environment remains separate. Local checks: 52 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) is implemented; its real run is pending on the operator's machine. GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
+The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime snapshot/analysis package is implemented; UI, model loop, worker service and memory bridge remain planned. The existing working JDBC environment remains separate. Local checks: 67 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) passed on the operator's machine. The new [runtime analysis CLI](docs/RUNTIME_ANALYSIS.md) still requires its own live execution there. GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
 
 ## Development boundaries
 
