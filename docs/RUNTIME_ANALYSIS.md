@@ -157,3 +157,13 @@ The next slices are the supervised worker/storage lifecycle, actual Meterless
 H-MEM integration, bounded model-driven tools and human-review interface. No model,
 memory, clinical validity, causal explanation, review authority or deployment
 completion is claimed by this data/analysis layer.
+
+## Subsequent operator runtime receipt
+
+The operator reported `DATA_MODE=zetaris`, snapshot ID
+`ss_64122fa0ad6e9740549aef0a6fce7c29dd7845498914b9e43da96c04a6d86852`,
+`ANALYSIS_STATUS=complete`, `DETERMINISTIC_ANALYSIS=PASS` and `LIVE_ZETARIS=PASS`.
+Expected comparison/canonical/raw counts matched and the analysis receipt was
+saved to `runtime/revision-zetaris-analysis.json` on their machine. This establishes
+the runtime path for that revision snapshot. Actual local H-MEM bridge verification
+is described in [HMEM_BRIDGE.md](HMEM_BRIDGE.md); model and review UI are separate.

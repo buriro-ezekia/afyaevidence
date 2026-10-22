@@ -2,7 +2,7 @@
 
 An evidence-grounded malaria reporting investigation agent for a district reporting reviewer.
 
-**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The operator has also reported full three-table live hash/join/reference verification. Runtime immutable snapshots, fixture/JDBC gateways and deterministic scoped analysis are implemented; the new runtime CLI's own live run, investigation agent and H-MEM integration remain pending.
+**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The operator has also reported full three-table live hash/join/reference verification. Runtime immutable snapshots, fixture/JDBC gateways and deterministic scoped analysis are implemented; the operator has reported the runtime CLI's live Zetaris PASS. The pinned H-MEM bridge now passes local actual-reference persistence/provenance/scope tests; its check on the operator's machine, bounded model and review interface remain pending.
 
 Repository: [buriro-ezekia/afyaevidence](https://github.com/buriro-ezekia/afyaevidence).
 
@@ -23,7 +23,7 @@ python scripts/analyse_snapshot.py --mode fixture --snapshot data/synthetic/fx_3
 python -m unittest discover -s tests -v
 ```
 
-These checks require Python 3.12+, no external runtime packages, Java, credentials or live database. They validate local fixtures. The [synthetic-data guide](docs/SYNTHETIC_DATA.md) covers regeneration, scenario IDs, independent answers, staging and package isolation. If Git reports local changes/divergence, resolve them before pulling; do not reset the existing checkout.
+The full test suite requires Python 3.12+ and Node 24 in Ubuntu/WSL. Fixture calculations require no Java, credentials, new model or live database; the H-MEM tests execute the pinned local TypeScript reference without npm installs. They validate local fixtures. The [synthetic-data guide](docs/SYNTHETIC_DATA.md) covers regeneration, scenario IDs, independent answers, staging and package isolation. If Git reports local changes/divergence, resolve them before pulling; do not reset the existing checkout.
 
 The original [first data-access guide](docs/FIRST_DATA_ACCESS.md) retains the exact Zetaris JDBC probe. A failed live query never falls back to local replay.
 
@@ -39,6 +39,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Components, dependency boundaries, investigation lifecycle, deployment and failure handling |
 | [First data access](docs/FIRST_DATA_ACCESS.md) | Six-row JDBC probe and operator-reported live acceptance |
+| [Meterless H-MEM](docs/HMEM_BRIDGE.md) | Pinned actual reference, scoped reviewed-note persistence, provenance and outbox retries |
 | [Runtime analysis](docs/RUNTIME_ANALYSIS.md) | Immutable snapshots, explicit fixture/JDBC gateways, scoped facts and JSON receipts |
 | [Three-table verification](docs/VERIFY_SNAPSHOT.md) | Exact live JDBC hashes, join and reference parity |
 | [Synthetic data](docs/SYNTHETIC_DATA.md) | Fifteen reproducible snapshots, evaluator answers, checks and source-only staging |
@@ -53,7 +54,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 
 The original probe and full three-table JDBC verifier passed on the operator's machine. Next run the packaged [runtime analysis layer](docs/RUNTIME_ANALYSIS.md) against the registered revision source and retain its private snapshot and scoped analysis receipts.
 
-The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime snapshot/analysis package is implemented; UI, model loop, worker service and memory bridge remain planned. The existing working JDBC environment remains separate. Local checks: 67 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) passed on the operator's machine. The new [runtime analysis CLI](docs/RUNTIME_ANALYSIS.md) still requires its own live execution there. GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
+The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime snapshot/analysis package is implemented; the pinned memory bridge is implemented; UI, model loop and worker service remain planned. The existing working JDBC environment remains separate. Local checks: 80 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) passed on the operator's machine. The [runtime analysis CLI](docs/RUNTIME_ANALYSIS.md) also passed on the operator's machine. The next local integration check is the [H-MEM bridge](docs/HMEM_BRIDGE.md). GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
 
 ## Development boundaries
 

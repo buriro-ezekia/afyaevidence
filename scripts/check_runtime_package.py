@@ -11,7 +11,7 @@ import tempfile
 def check(path):
     with zipfile.ZipFile(path) as archive:
         names = set(archive.namelist())
-        allowed = {"afyaevidence/" + name for name in ("__init__.py", "contracts.py", "snapshot.py", "jdbc.py", "analysis.py", "cli.py")}
+        allowed = {"afyaevidence/" + name for name in ("__init__.py", "contracts.py", "snapshot.py", "jdbc.py", "analysis.py", "cli.py", "memory.py")}
         required_meta = {"METADATA", "WHEEL", "top_level.txt", "RECORD"}
         for name in names:
             parts = name.split("/")
