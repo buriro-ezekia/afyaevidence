@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 import re
 import sqlite3
-from urllib.parse import urlsplit
+from urllib.parse import urlsplit, urlparse
 from .review_page import PAGE
 
 SCHEMA = """
@@ -190,6 +190,16 @@ def handler_factory(db_path: Path, token: str):
                 except ValueError as exc:self.reply(404,{"error":str(exc)})
 
         def do_POST(self):
+            origin = self.headers.get("Origin")
+            if origin:
+                parsed = urlparse(origin)
+                if (parsed.scheme != "http" or parsed.hostname not in ("127.0.0.1", "localhost")
+                    or parsed.port != self.server.server_port):
+                    self.reply(403, {"error": "origin_not_allowed"})
+                    return
+            if self.headers.get("Content-Type", "").split(";")[0].strip().lower() != "application/json":
+                self.reply(415, {"error": "json_required"})
+                return
             if not self.authorised():
                 self.reply(401,{"error":"unauthorised"});return
             match = re.fullmatch(r"/api/runs/([a-zA-Z0-9_-]{1,100})/reviews",urlsplit(self.path).path)
