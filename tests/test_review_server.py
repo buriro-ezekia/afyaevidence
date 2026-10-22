@@ -1,9 +1,12 @@
 """Review state tests; use only synthetic local receipts."""
 import json
 from pathlib import Path
+import sys
 from tempfile import TemporaryDirectory
 import unittest
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'src'))
 from afyaevidence.review_server import connect, get_run, import_receipt, review
 
 
