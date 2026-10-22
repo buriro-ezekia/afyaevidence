@@ -1,0 +1,7 @@
+dataset_id,facility_id,district_id,facility_type,active_from,active_to
+fx_c283e674,F001,D001,health_centre,2024-01-01,
+fx_c283e674,F002,D001,health_centre,2024-01-01,
+fx_c283e674,F003,D001,dispensary,2024-01-01,
+fx_c283e674,F004,D001,dispensary,2024-01-01,
+fx_c283e674,F005,D001,dispensary,2024-01-01,
+fx_c283e674,F006,D001,dispensary,2024-01-01,

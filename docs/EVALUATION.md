@@ -1,7 +1,6 @@
 # AfyaEvidence evaluation design
 
-Status: proposed acceptance criteria. This design pack contains no claim that tests,
-models, live sponsor calls or a clinical evaluation have been executed.
+Status: E01–E13 fixture cases (16 variants) and E14 row-order invariance are implemented, with 37 local tests passing across the probe and synthetic slice. See [SYNTHETIC_DATA.md](SYNTHETIC_DATA.md). E15–E23, model reasoning, memory, runtime service behaviour and three-table live sponsor parity remain planned. No clinical evaluation is claimed.
 
 ## Fixture design and answer-key isolation
 

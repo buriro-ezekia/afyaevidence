@@ -2,25 +2,28 @@
 
 An evidence-grounded malaria reporting investigation agent for a district reporting reviewer.
 
-**Status:** architecture and source-access probe. The six-facility synthetic fixture, generator and read-only JDBC verifier are implemented. The investigation agent, monthly malaria scenarios and H-MEM integration remain planned. The user's separate local Zetaris installation and `SELECT 1` JDBC test have passed; this project's actual table reconciliation must still run on that machine.
+**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The new three-table live reconciliation, investigation agent and H-MEM integration remain pending.
 
 Repository: [buriro-ezekia/afyaevidence](https://github.com/buriro-ezekia/afyaevidence).
 
 ## First runnable milestone
 
-While the bootstrap pull request is open, start from its feature branch in Ubuntu:
+Use your **existing checkout** in the Ubuntu VS Code terminal:
 
 ```bash
-git clone --branch codex/architecture-and-jdbc-probe --single-branch https://github.com/buriro-ezekia/afyaevidence.git ~/afyaevidence
-cd ~/afyaevidence
-python3 scripts/generate_probe.py --check
-python3 scripts/verify_zetaris.py --check-fixture
-python3 -m unittest discover -s tests -v
+git fetch origin
+git switch codex/architecture-and-jdbc-probe
+git pull --ff-only origin codex/architecture-and-jdbc-probe
+python scripts/generate_probe.py --check
+python scripts/verify_zetaris.py --check-fixture
+python scripts/generate_synthetic.py --check
+python scripts/evaluate_synthetic.py
+python -m unittest discover -s tests -v
 ```
 
-Use a new destination if `~/afyaevidence` already exists; do not overwrite an existing checkout. These checks require no Java, external packages, credentials or live database. They validate only the local synthetic probe.
+These checks require Python 3.12+, no external runtime packages, Java, credentials or live database. They validate local fixtures. The [synthetic-data guide](docs/SYNTHETIC_DATA.md) covers regeneration, scenario IDs, independent answers, staging and package isolation. If Git reports local changes/divergence, resolve them before pulling; do not reset the existing checkout.
 
-Next follow [First data access](docs/FIRST_DATA_ACCESS.md) to activate the existing JDBC environment, discover sources read-only, register the tiny fixture through a supported route and reconcile real returned rows. The verifier does not create or change a source. A live failure cannot fall back to local fixture results.
+The original [first data-access guide](docs/FIRST_DATA_ACCESS.md) retains the exact Zetaris JDBC probe. A failed live query never falls back to local replay.
 
 ## Product contract
 
@@ -33,7 +36,8 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 | Document | Implementation purpose |
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Components, dependency boundaries, investigation lifecycle, deployment and failure handling |
-| [First data access](docs/FIRST_DATA_ACCESS.md) | Runnable six-row probe, local JDBC discovery and pending source registration/reconciliation |
+| [First data access](docs/FIRST_DATA_ACCESS.md) | Six-row JDBC probe and operator-reported live acceptance |
+| [Synthetic data](docs/SYNTHETIC_DATA.md) | Fifteen reproducible snapshots, evaluator answers, checks and source-only staging |
 | [Data contract](docs/DATA_CONTRACT.md) | Three source tables, observation cutoffs, revision resolution and indicator semantics |
 | [Tool and API contracts](docs/CONTRACTS.md) | Model-visible tools, evidence/brief structures, human review and API endpoints |
 | [Evaluation](docs/EVALUATION.md) | Scenario answers, edge cases and separate fixture/live acceptance gates |
@@ -43,9 +47,9 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 
 ## Start implementation
 
-Complete the first milestone described in [Implementation](docs/IMPLEMENTATION.md): prove that one synthetic project table can be retrieved through the existing Zetaris JDBC connection. Determine the actual supported data-registration route before investing in the interface or model loop. The source-access probe prepares this check; it does not yet establish the broader three-table/versioned-report integration.
+The six-row live project-table gate passed on the operator's machine. Next stage one new three-table snapshot using the [synthetic-data guide](docs/SYNTHETIC_DATA.md), register it through the proven NDP File System route without replacing the probe, then reconcile actual JDBC results against the reference.
 
-The full repository tree shown in the architecture is a target layout. Only the documented probe and tests are implemented so far. Record and lock the already working JDBC environment after verifying it on Ubuntu/WSL; do not invent package pins or replace it during the access spike. The fixture CI uses standard-library Python and pinned GitHub Actions.
+The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime analysis service, UI, model loop and memory bridge do not. The existing working JDBC environment remains separate. Local checks: 37 tests, 16 fixture cases, reproducible bytes and wheel exclusion passed. GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
 
 ## Development boundaries
 

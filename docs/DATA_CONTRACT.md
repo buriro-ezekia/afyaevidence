@@ -1,7 +1,6 @@
 # AfyaEvidence data contract
 
-Status: proposed design for synthetic aggregate reporting investigations. No dataset,
-live connection or acceptance check is claimed to have been executed by this document.
+Status: the synthetic suite, strict source normalisation and evaluator reference implement the fixture subset described in [SYNTHETIC_DATA.md](SYNTHETIC_DATA.md). Runtime evidence services and three-table live JDBC parity remain pending. The original six-row probe passed on the operator's machine.
 
 ## Dataset and scope
 

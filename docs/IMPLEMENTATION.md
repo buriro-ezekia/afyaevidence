@@ -1,6 +1,6 @@
 # Ordered GitHub implementation backlog
 
-Status: issue specifications ready to copy to a new `afyaevidence` repository. No GitHub issues, branches or repository have been created by this pack. The six-day schedule is a planning target, contingent on passing the integration spikes.
+Status: implementation is on `codex/architecture-and-jdbc-probe` in the existing repository, with PR #1 open. The operator-reported six-row live gate passed. Issue 02's generator/contracts/evaluator/package slice is implemented; its synthetic checks pass locally. Issue 01's broader three-table live join/parity and runtime Issue 03 onward remain pending. The six-day schedule is a planning target, not a completion claim.
 
 Use short feature branches and focused pull requests into `main`. Record each PR's behaviour, limitations and actual checks. If available on the account, configure the main branch to require CI and review; the architecture pack does not claim those protections exist.
 

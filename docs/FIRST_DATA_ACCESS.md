@@ -8,11 +8,11 @@ This milestone proves that AfyaEvidence can retrieve its own source records thro
 - `scripts/verify_zetaris.py`: fixture validation, read-only metadata discovery and exact project-table reconciliation.
 - Standard-library tests and fixture-only GitHub CI. Live JDBC tests do not run against a GitHub runner's localhost.
 
-This work does not register a source, create a database or modify the existing Zetaris containers. Live project-data acceptance remains pending until the following steps run on the user's machine.
+This work does not register a source, create a database or modify the existing Zetaris containers. The operator subsequently reported `ZETARIS_CONNECTION=PASS`, `ZETARIS_PROJECT_TABLE=PASS` and `ZETARIS_PROJECT_ROWS=6` for `AFYAEVIDENCE.facility_registry` on 22 October 2026. This is operator-reported evidence, not a run in the remote development environment. The broader three-table gate remains pending.
 
 ## 1. Use Ubuntu and the existing JDBC environment
 
-Clone this repository into a new directory. While the bootstrap pull request is open, check out its named branch rather than the initial main branch. The README contains the exact branch checkout command.
+Use the existing checkout in your Ubuntu VS Code terminal. The README contains the feature-branch update commands; no new clone is needed.
 
 Your existing environment from the successful JDBC check may be activated with:
 
@@ -80,3 +80,20 @@ Missing configuration/dependencies are BLOCKED; query or data mismatches fail. A
 ## Completion record
 
 Record the actual code commit, Python/Java/JayDeBeApi/JPype versions, driver checksum, qualified source name, registration route, row count, fixture hash and real output without credentials. Do not mark Issue 01 complete until project-table reconciliation succeeds. The broader three-table join and version-aware aggregate gates follow when the monthly fixture tables are implemented.
+
+## Observed successful registration route
+
+The operator created logical database `AFYAEVIDENCE`, uploaded the CSV through NDP
+File System, and selected it under `/file-store` in Create Table → File Store.
+Settings: CSV, NDP File System, table `facility_registry`, delimiter comma,
+`header=true`, `inferSchema=false`. The table appeared in Metadata and subsequently
+passed the exact six-row JDBC reconciliation.
+
+Earlier direct paths `/home/zetaris/customer-data/afyaevidence/probe/facility_registry.csv`
+and its `file:///` form were rejected with `Invalid file path to access`, despite
+the file being readable inside the driver container. Do not repeat that failed
+registration assumption or replace the existing source while loading new snapshots.
+The exact backend URI and permission cause were not established.
+
+Full synthetic snapshots and their separate namespace/staging procedure are in
+[SYNTHETIC_DATA.md](SYNTHETIC_DATA.md). The probe script remains probe-specific.

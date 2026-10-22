@@ -1,0 +1,3 @@
+# Python >=3.12. This synthetic-data slice has no third-party runtime dependencies.
+# Build backend: setuptools==84.0.0 (pyproject.toml).
+# The operator's existing live JDBC environment is separate and is not replaced.
