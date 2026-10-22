@@ -186,3 +186,31 @@ For production use, strong individual reviewer authentication and authorisation,
 CSRF policy when appropriate, rate limits, controlled audit retention,
 TLS and non-loopback security review, robust worker recovery and operational
 monitoring are still outstanding.
+
+## Latest completed local regression gate — 22 October 2026
+
+After the deterministic metric-display change and new HTTP and worker tests,
+the operator reported this exact local `unittest discover` summary:
+
+```text
+----------------------------------------------------------------------
+Ran 160 tests in 34.642s
+
+OK
+```
+
+**LOCAL_REGRESSION=PASS (operator-reported).** This applies to the branch's
+current verification cycle at commit `a5511c3` subject to the operator's
+local checkout; the output alone does not establish the exact Git SHA or
+Python executable. It includes the added HTTP and worker unit tests, but
+is not evidence of a deployed authenticated identity provider or a real
+process-crash recovery test. The previous 156-test baseline remains preserved.
+
+**Browser display acceptance is still pending** for the metric correction.
+The expected immutable stored state is review revision 1 / disposition
+`accept`, with canonical tested totals 500 / 500 and positivity percentages
+20 / 20. Do not submit an additional disposition for the existing run.
+
+The GitHub Actions administrative budget restriction is reported by the
+operator, but no GitHub billing notice was examined in this record. Hosted
+CI is not considered PASS. The PR remains unmerged pending further review.
