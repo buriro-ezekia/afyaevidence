@@ -246,6 +246,13 @@ def main(argv=None) -> int:
 
     if set(principal.roles) != {args.role}:
         print("PKCE_LOGIN=FAIL: unexpected application roles")
+        # These booleans describe only the three public application role names;
+        # never print JWTs, identity claims or complete principal objects.
+        for role in ("viewer", "reviewer", "administrator"):
+            print("VERIFIED_ROLE_" + role.upper() + "=" +
+                  ("YES" if role in principal.roles else "NO"))
+        print("EXPECTED_ROLE_" + args.role.upper() + "=YES")
+        print("LIVE_SIGNATURE_AND_INTROSPECTION=PASS")
         return 1
     expected = {"read": True, "review": args.role == "reviewer",
                 "recover": args.role == "administrator"}
