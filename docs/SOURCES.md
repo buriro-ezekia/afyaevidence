@@ -30,3 +30,8 @@ The Meterless community hackathon guide contains older dates and a different rub
 - GenAI.Works. (2026). [Open Agent Hackathon 2026](https://hackathon.genai.works/event/open-agent-hackathon-2026). Current organiser page: 22–27 October; Track 02 concerns evidence-backed investigation; Wildcard expressly addresses extending existing work with both sponsors. Detailed current eligibility/reuse/submission rules must be read at submission time.
 
 No public source establishes that the proposed app is clinically effective, approved for real health data or production-ready. No such claim is made.
+
+## Ollama adapter contract
+
+- Ollama. (n.d.). [Generate a chat message](https://docs.ollama.com/api/chat). Reviewed POST `/api/chat`, `stream=false`, JSON schema `format`, message/model completion and optional usage fields for the explicit local adapter.
+- Ollama. (n.d.). [Structured outputs](https://docs.ollama.com/capabilities/structured-outputs). Reviewed schema-in-format guidance and low-temperature generation. Actual selected-model support is checked separately by `scripts/verify_model.py`; no capability is inferred from these documents alone.

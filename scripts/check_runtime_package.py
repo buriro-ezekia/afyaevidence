@@ -11,7 +11,7 @@ import tempfile
 def check(path):
     with zipfile.ZipFile(path) as archive:
         names = set(archive.namelist())
-        allowed = {"afyaevidence/" + name for name in ("__init__.py", "contracts.py", "snapshot.py", "jdbc.py", "analysis.py", "cli.py", "memory.py")}
+        allowed = {"afyaevidence/" + name for name in ("__init__.py", "contracts.py", "snapshot.py", "jdbc.py", "analysis.py", "cli.py", "memory.py", "agent.py", "model.py", "agent_cli.py")}
         required_meta = {"METADATA", "WHEEL", "top_level.txt", "RECORD"}
         for name in names:
             parts = name.split("/")
@@ -36,6 +36,18 @@ def smoke(path, snapshot):
                                 cwd=temp, capture_output=True, text=True, timeout=30)
     if result.returncode != 0 or "LIVE_ZETARIS=NOT_RUN" not in result.stdout:
         raise ValueError("Isolated wheel execution failed")
+    agent_code = ("import sys; sys.path.insert(0, sys.argv[1]); "
+                  "from afyaevidence.agent_cli import main; "
+                  "result=main(['--data-mode','fixture','--model-provider','scripted',"
+                  "'--snapshot',sys.argv[2],'--output',sys.argv[3]]); "
+                  "assert not any(n == 'evals' or n.startswith('evals.') for n in sys.modules); "
+                  "raise SystemExit(result)")
+    with tempfile.TemporaryDirectory() as temp:
+        result = subprocess.run([sys.executable, "-I", "-c", agent_code, str(path.resolve()),
+                                 str(snapshot.resolve()),str(Path(temp)/'agent.json')],
+                                cwd=temp,capture_output=True,text=True,timeout=30)
+    if result.returncode != 0 or "LIVE_MODEL=NOT_RUN" not in result.stdout or "AGENT_EXECUTION=PASS" not in result.stdout:
+        raise ValueError("Isolated scripted-agent wheel execution failed")
 
 
 def main():

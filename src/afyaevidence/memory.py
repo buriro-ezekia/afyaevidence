@@ -305,4 +305,5 @@ class HmemBridge:
         if len(notes)>3:
             raise MemoryError('Recall cap exceeded')
         return dict(mode='hmem_reference',memory_as_of_utc=memory_as_of_utc,notes=notes,
+                    pending_sync=len(self.reviews.pending(self.scope)),
                     limitations='Mock hash embeddings; historical untrusted context, not current measurements')

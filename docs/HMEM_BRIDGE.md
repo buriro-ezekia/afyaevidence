@@ -133,8 +133,7 @@ numeric evidence or integrated-agent completion.
 
 ## Recorded checks
 
-Local checks on 22 October 2026: **84 tests passed**, including 17 tests that launch
-the actual pinned Node/TypeScript reference. Checks cover restart persistence,
+Local checks on 22 October 2026: **84 tests passed** at the bridge milestone, including 17 H-MEM-focused checks with actual pinned Node/TypeScript execution and diagnostic tests. Checks cover restart persistence,
 source/audit provenance, district/family and temporal isolation, corrupted/lost
 projection detection, event idempotency, post-write outbox retry, cross-process
 scope contention, killed helpers, request failure, timeout cleanup and untrusted
@@ -166,3 +165,12 @@ lock/protocol errors now retain specific safe messages instead of being replaced
 with one generic startup error. Arbitrary driver/helper stderr is still withheld.
 A diagnostic PASS does not itself establish note persistence or scope acceptance;
 run the full suite and smoke afterwards.
+
+## Operator-reported acceptance
+
+The operator subsequently reported all 84 tests passing and
+`HMEM_REFERENCE=PASS`, persistence, provenance, scope isolation, chronology and
+outbox retry PASS, with receipt `runtime/hmem-verification.json`. The blocker was
+Ubuntu selecting Node 22; selecting Linux Node 24 resolved startup. The bounded
+agent's actual memory wiring and next model checks are in
+[AGENT_LOOP.md](AGENT_LOOP.md). The user-local model check remains pending.

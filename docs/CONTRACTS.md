@@ -1,6 +1,6 @@
 # Tool, API and persistence contracts
 
-Status: proposed version 1 interfaces. Implement strict Pydantic schemas with unknown fields forbidden and export JSON Schemas during implementation. The examples below specify behaviour; they are not executed API calls.
+Status: HTTP/persistence/review interfaces remain proposed. The CLI agent action/tool subset is implemented with a strict standard-library validator and exported JSON Schema; see [AGENT_LOOP.md](AGENT_LOOP.md) and [ADR 0002](adr/0002-bounded-template-agent.md). Unknown fields are forbidden. Candidate briefs currently use reviewed explanation/limitation/next-check codes and scoped references, with host-rendered prose; free-form model clinical/numeric prose is not accepted. The HTTP examples below remain design examples, not executed API calls.
 
 ## Request and modes
 

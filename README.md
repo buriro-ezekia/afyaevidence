@@ -2,7 +2,7 @@
 
 An evidence-grounded malaria reporting investigation agent for a district reporting reviewer.
 
-**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The operator has also reported full three-table live hash/join/reference verification. Runtime immutable snapshots, fixture/JDBC gateways and deterministic scoped analysis are implemented; the operator has reported the runtime CLI's live Zetaris PASS. The pinned H-MEM bridge now passes local actual-reference persistence/provenance/scope tests; its check on the operator's machine, bounded model and review interface remain pending.
+**Status:** source contracts, six-row JDBC probe and reproducible synthetic-data suite implemented. The operator has reported successful live reconciliation of `AFYAEVIDENCE.facility_registry` (six probe rows). Fifteen 24-month snapshots, three CSVs per snapshot and 16 independent evaluator cases are available. The operator has also reported full three-table live hash/join/reference verification. Runtime immutable snapshots, fixture/JDBC gateways and deterministic scoped analysis are implemented; the operator has reported the runtime CLI's live Zetaris PASS. The operator also reported pinned H-MEM persistence/provenance/scope/chronology/retry PASS. The bounded agent loop, strict actions, server-rendered referenced briefs, scripted and Ollama providers, model probe and combined operator CLI are implemented. Actual model capability and the combined real-model run remain pending; the authenticated review interface is not implemented.
 
 Repository: [buriro-ezekia/afyaevidence](https://github.com/buriro-ezekia/afyaevidence).
 
@@ -19,6 +19,7 @@ python scripts/verify_zetaris.py --check-fixture
 python scripts/generate_synthetic.py --check
 python scripts/evaluate_synthetic.py
 python scripts/verify_zetaris_snapshot.py --check-fixture
+python scripts/check_agent.py
 python scripts/analyse_snapshot.py --mode fixture --snapshot data/synthetic/fx_32e8b610
 python -m unittest discover -s tests -v
 ```
@@ -39,6 +40,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 |---|---|
 | [Architecture](docs/ARCHITECTURE.md) | Components, dependency boundaries, investigation lifecycle, deployment and failure handling |
 | [First data access](docs/FIRST_DATA_ACCESS.md) | Six-row JDBC probe and operator-reported live acceptance |
+| [Bounded agent loop](docs/AGENT_LOOP.md) | Approved tools, strict actions, call budgets, referenced rendering and actual-model checks |
 | [Meterless H-MEM](docs/HMEM_BRIDGE.md) | Pinned actual reference, scoped reviewed-note persistence, provenance and outbox retries |
 | [Runtime analysis](docs/RUNTIME_ANALYSIS.md) | Immutable snapshots, explicit fixture/JDBC gateways, scoped facts and JSON receipts |
 | [Three-table verification](docs/VERIFY_SNAPSHOT.md) | Exact live JDBC hashes, join and reference parity |
@@ -54,7 +56,7 @@ Initial scope: six fictional facilities, January 2024 to December 2025, three so
 
 The original probe and full three-table JDBC verifier passed on the operator's machine. Next run the packaged [runtime analysis layer](docs/RUNTIME_ANALYSIS.md) against the registered revision source and retain its private snapshot and scoped analysis receipts.
 
-The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime snapshot/analysis package is implemented; the pinned memory bridge is implemented; UI, model loop and worker service remain planned. The existing working JDBC environment remains separate. Local checks: 84 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) passed on the operator's machine. The [runtime analysis CLI](docs/RUNTIME_ANALYSIS.md) also passed on the operator's machine. The next local integration check is the [H-MEM bridge](docs/HMEM_BRIDGE.md). GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
+The architecture tree remains a target: source contracts, generation and evaluator arithmetic exist; the runtime snapshot/analysis package is implemented; the pinned memory bridge is implemented; the bounded model loop is implemented; authenticated UI and worker service remain planned. The existing working JDBC environment remains separate. Local checks: 107 tests, 16 fixture cases, reproducible bytes, three-table verifier offline preflight and wheel exclusion passed. The [three-table JDBC verifier](docs/VERIFY_SNAPSHOT.md) passed on the operator's machine. The [runtime analysis CLI](docs/RUNTIME_ANALYSIS.md) also passed on the operator's machine. The H-MEM bridge also passed on the operator's machine. Next run the [actual-model probe and combined agent command](docs/AGENT_LOOP.md). GitHub-hosted CI previously could not start because of an account-level Actions restriction; no hosted PASS is claimed.
 
 ## Development boundaries
 
