@@ -146,3 +146,43 @@ The unchanged existing receipt and review records remain local.
 the updated UI have not been executed by the assistant against the user's
 Ubuntu runtime. Require a clean local regression run and a fresh hosted CI
 result before promoting the draft PR.
+
+## Local regression evidence and follow-up hardening (22 October 2026)
+
+User-provided complete Ubuntu log: **156 tests ran in 33.408 seconds; OK**.
+This is the verified baseline for commit `019088a4`, not an assertion that later additions have passed.
+The log includes the new review dashboard, immutable history and review-service tests.
+The authenticated dashboard was also observed loading the accepted synthetic run.
+
+Subsequent changes on this branch:
+
+- Monthly comparison reads authoritative `evidence.metrics` values rather than requiring
+  the model-selected brief to cite tested/positivity facts. Only `available`, finite,
+  numeric, canonical/raw, all-available comparison/target metrics are displayed;
+  unavailable measurements remain dashes, never converted to zero.
+- Real localhost HTTP regression tests cover missing/incorrect bearer tokens, authorised
+  reads, review submission, idempotent retries and duplicate rejection.
+- Worker tests cover exclusive file lock contention, failed-child event persistence
+  and invalid entrypoint/existing receipt validation. These are test doubles,
+  not proof of crash recovery or actual Ollama/JDBC worker lifecycle.
+
+Run the complete suite again on the updated branch:
+
+```bash
+python -m unittest discover -s tests -v 2>&1 | tee runtime/review-hardening-local-tests.log
+```
+
+Check the output's final `Ran N tests ... OK`, and verify the dashboard shows
+canonical `tested_total=500` and `positivity_pct=20` for both months.
+The old accepted review is immutable: no second submission is needed.
+
+GitHub Actions has shown immediate workflow failure before populated steps;
+operator reports an account budget block. Until a billing notice is directly
+inspected, describe it as **consistent with administrative blocking**, not a
+confirmed application test failure or a hosted CI PASS. No budget bypass,
+CI relaxation or manual success status is appropriate.
+
+For production use, strong individual reviewer authentication and authorisation,
+CSRF policy when appropriate, rate limits, controlled audit retention,
+TLS and non-loopback security review, robust worker recovery and operational
+monitoring are still outstanding.
