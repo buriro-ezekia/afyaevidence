@@ -18,7 +18,7 @@ never writes a review or alters the existing review database.
   authorisation code + PKCE S256, not implicit or password grant.
 - The client issues RS256 access tokens with `typ=at+jwt`, exact string
   audience `afya-review-introspection` and top-level `roles: ["viewer"]`
-  for the viewer test account.
+  for the viewer test account. The Keycloak access token may omit optional `nbf`; signed `iat` is mandatory and future issue times remain rejected.
 - The confidential client `afya-review-introspection` has an enabled
   credential, and introspection must return `active=true` plus matching
   `iss`, `aud`, `sub`, `exp`. If Keycloak's default response does not
