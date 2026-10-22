@@ -60,7 +60,16 @@ current=r;submissionKey=null;$("dashboard").hidden=false;$("raw").textContent=JS
 const c=r.candidate||{},e=r.evidence||{},items=c.numerical_statements||[];
 $("summary").textContent=c.summary||"No candidate summary";$("status").textContent=r.disposition||c.review_status||"Unknown";
 $("identity").textContent="Run "+r.run_id+" · Snapshot "+r.snapshot_id+" · Revision "+r.revision;
-const data={};for(const line of items){const m=/^(comparison|target) \/ all_available \/ (canonical|raw_diagnostic): (positive_total|tested_total|positivity_pct) = ([0-9.]+)/.exec(line.text||"");if(m)data[m[1]+"_"+m[2]+"_"+m[3]]=Number(m[4])}
+// Host-calculated metrics are authoritative; the model-selected brief need not enumerate them.
+const data={};
+for(const m of (e.metrics||[])){
+ if(!["comparison","target"].includes(m.period)||m.cohort!=="all_available")continue;
+ if(!["canonical","raw_diagnostic"].includes(m.view))continue;
+ if(!["positive_total","tested_total","positivity_pct"].includes(m.name))continue;
+ if(m.availability==="available" && typeof m.value==="number" && Number.isFinite(m.value)){
+   data[m.period+"_"+m.view+"_"+m.name]=m.value;
+ }
+}
 const get=(p,v,n)=>data[p+"_"+v+"_"+n];
 $("metrics").replaceChildren(metric("Canonical positives · earlier",get("comparison","canonical","positive_total")),
 metric("Canonical positives · later",get("target","canonical","positive_total")),
