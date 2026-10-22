@@ -101,3 +101,48 @@ mode PASS summaries. Receipt:
 `runtime/agent-live-cpu-20261022T080645Z.json`.
 This receipt remains local and has **not** been inspected by this change.
 Do not substitute the published CPU fixture receipt for the live one.
+
+## 22 October 2026 observed review verification
+
+Operator supplied the actual review API result for
+`run_a0dfd33e79a14482aca3149bd96aadac`:
+`{"revision":1,"disposition":"accept","replayed":false}`.
+This confirms that a *new* human disposition was accepted by the local
+review service. The uploaded evidence showed the synthetic reporting-artefact
+case: October/November canonical positives 100/100, raw 100/120,
+with two accepted versions for November F001 report R202511001.
+The candidate continued to show `semantic_review_required=true` and
+`approval=null`. This is **not** a clinical approval, new model
+test, reviewer identity validation, deployment check or re-run of source access.
+
+## Updated dashboard and local verification
+
+The dashboard displays the summary, canonical/raw comparison, version
+history, matched facility contributions, limitations and audit history.
+Expand the technical evidence section to inspect the original identifiers.
+Its numeric summary only displays the metric categories explicitly present
+in the candidate's numerical statements. Missing values display as dashes;
+they must not be silently manufactured. Existing review records remain intact.
+
+```bash
+git fetch origin
+git switch codex/review-supervision-slice
+python -m unittest discover -s tests -v
+python -m afyaevidence.review_server --db runtime/reviews.sqlite3 --port 8010
+```
+
+Restart the old local HTTP process before launching the updated server.
+Keep the same review DB and existing private token. Re-open the imported run;
+its review history should show the prior `accept` revision 1, and the
+disposition button must be disabled. Do not submit a second review to test it.
+
+The supervisor now uses a Linux kernel `flock` on the shared
+`runtime/jobs/.worker.lock`; a second supervisor receives `busy`
+instead of starting another model/JDBC worker. This does **not** yet supply
+job queueing, heartbeats, recovery orchestration or distributed coordination.
+The unchanged existing receipt and review records remain local.
+
+**Verification status:** additions are published to GitHub but tests and
+the updated UI have not been executed by the assistant against the user's
+Ubuntu runtime. Require a clean local regression run and a fresh hosted CI
+result before promoting the draft PR.
