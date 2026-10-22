@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path[:0] = [str(ROOT / 'src'), str(ROOT)]
 from afyaevidence.agent import BRIEF_SCHEMA, ToolSession, run_agent, turn_contract
 from afyaevidence.analysis import Request, investigate
-from afyaevidence.model import OllamaProvider
+from afyaevidence.model import OllamaProvider, ScriptedProvider
 from afyaevidence.snapshot import FixtureGateway
 
 
@@ -171,10 +171,71 @@ class ActionContractTests(unittest.TestCase):
         self.assertIsNone(result['candidate_brief']['approval'])
         self.assertTrue(result['candidate_brief']['semantic_review_required'])
         self.assertEqual([self.raw()], exact_tools(requests[1]['format']))
-        self.assertTrue(all('CURRENT_ACTION_SCHEMA=' in r['messages'][-1]['content'] for r in requests))
         for request in requests:
+            self.assertTrue(all('CURRENT_ACTION_SCHEMA=' not in message['content'] for message in request['messages']))
+            encoded_schema=json.dumps(request['format'],separators=(',',':'))
+            self.assertTrue(all(encoded_schema not in message['content'] for message in request['messages']))
             choices = exact_tools(request['format'])
             self.assertFalse(any(a['arguments'].get('view') == 'canonical' for a in choices))
+
+    def test_fake_http_cpu_has_two_compact_phase_requests_and_exact_size_receipts(self):
+        """A scripted HTTP responder exercises transport, not actual inference."""
+        requests = []
+        payloads = []
+        policy = ScriptedProvider()
+        class Handler(BaseHTTPRequestHandler):
+            def log_message(self, *args):
+                pass
+            def do_POST(self):
+                raw = self.rfile.read(int(self.headers['Content-Length']))
+                request = json.loads(raw)
+                payloads.append(raw)
+                requests.append(request)
+                response = policy.next_action(request['messages'], timeout=1, action_schema=request['format'])
+                payload = json.dumps(dict(model=request['model'], done=True,
+                                          message=dict(content=response['content']))).encode()
+                self.send_response(200)
+                self.end_headers()
+                self.wfile.write(payload)
+        server = ThreadingHTTPServer(('127.0.0.1', 0), Handler)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            provider = OllamaProvider(endpoint='http://127.0.0.1:' + str(server.server_port), model='qwen2.5:3b')
+            result = run_agent(self.session().bundle, provider, execution_profile='cpu')
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join(timeout=2)
+        self.assertEqual('ready_for_review', result['execution_status'], result['failure_reason'])
+        self.assertEqual(2, result['model_calls'])
+        self.assertEqual(2, len(requests))
+        contexts = [json.loads(request['messages'][1]['content']) for request in requests]
+        self.assertEqual(['follow_up', 'brief'], [context['phase'] for context in contexts])
+        self.assertNotIn('brief_requirements', contexts[0])
+        self.assertIn('brief_requirements', contexts[1])
+        self.assertEqual([], exact_tools(requests[1]['format']))
+        self.assertEqual('propose_brief', requests[1]['format']['properties']['type']['const'])
+        self.assertNotIn('compare_matched_facilities', requests[1]['messages'][0]['content'])
+        self.assertNotIn('get_evidence_records', requests[1]['messages'][0]['content'])
+        for request in requests:
+            self.assertEqual(['system', 'user'], [message['role'] for message in request['messages']])
+            encoded_schema = json.dumps(request['format'], separators=(',', ':'))
+            self.assertTrue(all(encoded_schema not in message['content'] for message in request['messages']))
+        model_events = [event for event in result['trace'] if event['kind'] == 'model']
+        self.assertEqual([len(payload) for payload in payloads],
+                         [event['request_metadata']['request_bytes'] for event in model_events])
+        self.assertTrue(all(event['usage']['prompt_eval_count'] is None for event in model_events))
+        # Measured exact investigator-3 wire payloads for this fixture/model,
+        # no H-MEM, were 15,638 / 19,984 / 22,392 bytes (raw/matched/brief).
+        # Bound substantial reduction without coupling tests to exact new sizes.
+        self.assertLess(len(payloads[0]), 15638 * .65)
+        # Finite period-covering citations add grammar bytes but prevent the
+        # actual model's repeated-ID failure without loosening host validation.
+        self.assertLess(len(payloads[1]), 22392 * .65)
+        self.assertEqual('awaiting_human_review', result['review_status'])
+        self.assertTrue(result['candidate_brief']['semantic_review_required'])
+        self.assertIsNone(result['candidate_brief']['approval'])
 
 
 if __name__ == '__main__':

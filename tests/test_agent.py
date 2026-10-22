@@ -1,5 +1,5 @@
 """Bounded control flow and deterministic rendering; scripted/fake models are explicit."""
-from contextlib import redirect_stdout
+from contextlib import redirect_stderr, redirect_stdout
 import io
 import json
 from pathlib import Path
@@ -247,8 +247,50 @@ class AgentTests(unittest.TestCase):
             self.assertEqual('scripted',receipt['model_mode'])
             failed=Path(temp)/'failed.json'
             args[-1]=str(failed); args[3]=str(Path(temp)/'missing-source')
-            with redirect_stdout(output): self.assertEqual(1,main(args))
-            self.assertEqual('failed',json.loads(failed.read_text())['execution_status'])
+            with patch('afyaevidence.agent_cli.run_agent') as loop, redirect_stdout(output):
+                self.assertEqual(1,main(args))
+            loop.assert_not_called()
+            receipt=json.loads(failed.read_text())
+            self.assertEqual('failed',receipt['execution_status'])
+            self.assertEqual('source_collection',receipt['failure_stage'])
+            self.assertEqual('fixture',receipt['data_mode'])
+            self.assertNotIn('evidence_bundle',receipt)
+            self.assertIn('FAILURE_STAGE=source_collection',output.getvalue())
+
+    def test_cli_memory_startup_failure_retains_evidence_without_model_fallback(self):
+        """Mock the failing bridge boundary; this neither starts H-MEM nor calls Ollama."""
+        with tempfile.TemporaryDirectory() as temp:
+            destination=Path(temp)/'memory-setup-failed.json'
+            args=['--data-mode','fixture','--snapshot',str(ROOT/'data/synthetic/fx_32e8b610'),
+                  '--model-provider','ollama','--execution-profile','cpu','--memory','hmem_reference',
+                  '--bridge-dir',str(BRIDGE),'--memory-root',str(Path(temp)/'memory'),
+                  '--reviews-db',str(Path(temp)/'reviews.sqlite3'),'--output',str(destination)]
+            output=io.StringIO();errors=io.StringIO()
+            with (patch.object(HmemBridge,'__enter__',side_effect=RuntimeError('mock-token-do-not-export')) as enter,
+                  patch('afyaevidence.agent_cli.OllamaProvider') as provider,
+                  patch('afyaevidence.agent_cli.ScriptedProvider') as fallback,
+                  patch('afyaevidence.agent_cli.run_agent') as loop,
+                  redirect_stdout(output),redirect_stderr(errors)):
+                self.assertEqual(1,main(args))
+            enter.assert_called_once()
+            provider.assert_called_once()
+            provider.return_value.next_action.assert_not_called()
+            fallback.assert_not_called()
+            loop.assert_not_called()
+            receipt=json.loads(destination.read_text())
+            self.assertEqual('failed',receipt['execution_status'])
+            self.assertEqual('source_model_or_memory_setup_failed',receipt['failure_reason'])
+            self.assertEqual('memory_setup',receipt['failure_stage'])
+            self.assertEqual('fixture',receipt['data_mode'])
+            self.assertEqual('ollama',receipt['model_mode'])
+            self.assertEqual('hmem_reference',receipt['memory_mode'])
+            self.assertEqual('cpu',receipt['execution_profile'])
+            self.assertEqual(self.bundle().to_dict(),receipt['evidence_bundle'])
+            self.assertIsNone(receipt.get('candidate_brief'))
+            self.assertIn('FAILURE_STAGE=memory_setup',output.getvalue())
+            self.assertNotIn('LIVE_MODEL=PASS',output.getvalue())
+            self.assertNotIn('LIVE_HMEM=PASS',output.getvalue())
+            self.assertNotIn('mock-token-do-not-export',destination.read_text()+output.getvalue()+errors.getvalue())
 
     def test_exported_schema_matches_provider_contract(self):
         from afyaevidence.agent import ACTION_SCHEMA

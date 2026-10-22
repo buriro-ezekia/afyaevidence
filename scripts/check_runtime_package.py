@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Reject a runtime wheel containing evaluator code, data or local credentials."""
 import argparse
+import json
 from pathlib import Path
 import zipfile
 import subprocess
@@ -39,15 +40,23 @@ def smoke(path, snapshot):
     agent_code = ("import sys; sys.path.insert(0, sys.argv[1]); "
                   "from afyaevidence.agent_cli import main; "
                   "result=main(['--data-mode','fixture','--model-provider','scripted',"
-                  "'--snapshot',sys.argv[2],'--output',sys.argv[3]]); "
+                  "'--snapshot',sys.argv[2],'--output',sys.argv[3],'--execution-profile',sys.argv[4]]); "
                   "assert not any(n == 'evals' or n.startswith('evals.') for n in sys.modules); "
                   "raise SystemExit(result)")
-    with tempfile.TemporaryDirectory() as temp:
-        result = subprocess.run([sys.executable, "-I", "-c", agent_code, str(path.resolve()),
-                                 str(snapshot.resolve()),str(Path(temp)/'agent.json')],
-                                cwd=temp,capture_output=True,text=True,timeout=30)
-    if result.returncode != 0 or "LIVE_MODEL=NOT_RUN" not in result.stdout or "AGENT_EXECUTION=PASS" not in result.stdout:
-        raise ValueError("Isolated scripted-agent wheel execution failed")
+    for profile in ('standard','cpu'):
+        with tempfile.TemporaryDirectory() as temp:
+            output=Path(temp)/'agent.json'
+            result = subprocess.run([sys.executable, "-I", "-c", agent_code, str(path.resolve()),
+                                     str(snapshot.resolve()),str(output),profile],
+                                    cwd=temp,capture_output=True,text=True,timeout=30)
+            if result.returncode != 0 or "LIVE_MODEL=NOT_RUN" not in result.stdout or "AGENT_EXECUTION=PASS" not in result.stdout:
+                raise ValueError("Isolated scripted-agent wheel execution failed: "+profile)
+            receipt=json.loads(output.read_text(encoding='utf-8'))
+            brief=receipt['candidate_brief']
+            if (receipt['execution_profile']!=profile or receipt['model_mode']!='scripted' or
+                receipt['review_status']!='awaiting_human_review' or not brief['semantic_review_required'] or
+                brief['approval'] is not None or (profile=='cpu' and receipt['model_calls']!=2)):
+                raise ValueError("Isolated scripted-agent receipt contract failed: "+profile)
 
 
 def main():
@@ -64,7 +73,7 @@ def main():
         return 1
     print("RUNTIME_PACKAGE=PASS\nEVALUATOR_KEYS_IN_WHEEL=NO\nSOURCE_DATA_IN_WHEEL=NO")
     if args.smoke_snapshot:
-        print("ISOLATED_RUNTIME_WHEEL=PASS")
+        print("ISOLATED_RUNTIME_WHEEL=PASS\nISOLATED_SCRIPTED_PROFILES=standard,cpu\nLIVE_MODEL=NOT_RUN")
     return 0
 
 

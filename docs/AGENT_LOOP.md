@@ -77,22 +77,39 @@ based on the official [chat API](https://docs.ollama.com/api/chat) and
 
 ## Run actual model inference with the live sources and memory bridge
 
-After the model probe passes:
+After the model probe passes, test actual inference with fixture data first:
+
+```bash
+python scripts/run_agent.py \
+  --data-mode fixture --snapshot data/synthetic/fx_32e8b610 \
+  --model-provider ollama --execution-profile cpu \
+  --endpoint http://172.22.160.1:11434 --model qwen2.5:1.5b \
+  --model-timeout 300 \
+  --output "runtime/cpu-fixture-$(date -u +%Y%m%dT%H%M%SZ).json"
+```
+
+Use the currently verified endpoint; this address may change after restarting WSL.
+This checks actual inference with fixture source access and disabled memory. Then
+run the combined workflow in your existing Ubuntu checkout:
 
 ```bash
 source ~/zetaris-setup/zetaris-platform/.venv-jdbc/bin/activate
+source "$HOME/.nvm/nvm.sh"
+nvm use 24
 python scripts/run_agent.py \
   --data-mode zetaris \
   --snapshot data/synthetic/fx_32e8b610 \
   --database AFYAEVIDENCE_REVISION \
   --jar "$HOME/zetaris-setup/zetaris-platform/jdbc/ndp-jdbc-driver-2.4.3.1-7eff043-driver.jar" \
+  --url jdbc:zetaris:lightning@localhost:10000 \
   --model-provider ollama \
+  --execution-profile cpu \
   --endpoint http://172.22.160.1:11434 \
   --model qwen2.5:1.5b \
   --model-timeout 300 \
   --memory hmem_reference \
   --bridge-dir bridges/hmem \
-  --output runtime/agent-live-revision.json
+  --output "runtime/agent-live-cpu-$(date -u +%Y%m%dT%H%M%SZ).json"
 ```
 
 The JDBC user defaults to `admin@zetaris.com`; the password is prompted privately
@@ -122,8 +139,9 @@ substituted. Setup errors also receive a failed receipt when possible.
 ## Actions, tools and budgets
 
 `schemas/agent-action.schema.json` is the exported superset protocol. Each
-Ollama request receives a narrower, host-generated schema in both its `format`
-field and current prompt. The global superset is never advertised to the model
+Ollama request receives a narrower, host-generated schema once in its `format`
+field, with matching phase instructions and a compact action menu in the prompt.
+The global superset is never advertised to the model
 in an investigation. Schema-export consistency and fake-HTTP integration tests
 verify the two contracts. The standard-
 library validator rejects unknown fields, duplicate JSON keys, non-JSON/fenced
@@ -135,10 +153,12 @@ Allowed tools are the five names in [CONTRACTS.md](CONTRACTS.md): reporting qual
 canonical/raw indicators, matched facilities, scoped source records and historical
 review recall. The host injects the fixed bundle/scope; model arguments cannot
 select a database, snapshot, cutoff, district or output path. Quality and canonical
-facts are mandatory before the first model call. At least one optional follow-up
+facts are mandatory before the first model call. At least one model-selected follow-up
 must execute before a candidate brief is accepted.
 
-Prompt version `investigator-3` supplies finite exact follow-up actions: raw
+Prompt version `investigator-4` supports two explicit scheduling profiles.
+`--execution-profile standard` preserves the four-request policy and 180-second
+default timeout. It supplies finite exact follow-up actions: raw
 version comparison, matched facilities with or without contributions, and stable
 source batches of at most 20 scoped evidence records grouped by table/month.
 A completed pair is removed, and either matched variant completes that analysis.
@@ -156,17 +176,63 @@ when inference fails. Brief schemas enumerate only shown metric/evidence aliases
 and recalled contexts. Category prerequisites, supporting metrics, period coverage
 and human-review limitations are validated separately after generation.
 
-Hard dispatch limits are four provider calls, ten tool invocations including
+For the standard profile, hard dispatch limits are four provider calls, ten tool invocations including
 mandatory baselines, and one validation-repair opportunity within that same provider
 budget. Completed tool+argument pairs are listed explicitly in the initial context.
 A repeated pair is rejected before execution and may consume the single shared
 validation repair; a second invalid action stops predictably. No duplicate tool
 executes, no budget grows, and no failed run falls back to a scripted result.
-The loop checks its
-600-second deadline and cancellation before/after dispatch; per-model request
-socket timeout defaults to 180 seconds. The operator can explicitly select
-`--model-timeout 300` for CPU inference; 300 seconds is the maximum and every
-request is clamped to the remaining 600-second loop deadline. The receipt records
+`--execution-profile cpu` changes scheduling, not evidence or approval rules:
+
+1. The host collects reporting quality, canonical comparison, raw-version
+   comparison and configured scoped H-MEM context before dispatch.
+2. The first model request chooses one matched-facility comparison with
+   contributions or one finite scoped source-record batch. Raw, quality, canonical
+   and memory operations are already complete and absent from the menu.
+3. The second request accepts only a candidate brief. The model still chooses the
+   explanation category, metric/evidence references, limitations and next checks.
+
+CPU mode permits at most two requests, including invalid responses. It does not
+spend a third call repairing or exploring. A first-turn validation failure stops
+without consuming the reserved brief call. A second-turn failure preserves a failed
+receipt. There is no host-generated replacement answer. Ten tool calls remain the
+outer cap; normal CPU runs use four, or five with H-MEM.
+
+CPU mode defaults to a 300-second per-request cap and reserves
+`min(request_timeout, overall_deadline / 2)` seconds for the brief. Before the first
+dispatch its timeout is also capped at remaining time minus that reserve. If no
+positive allowance remains, dispatch fails with `brief_capacity_unavailable`.
+Before the final dispatch the request cap is clamped to the actual remaining time.
+A caller-supplied model-call budget below two cannot spend its sole call exploring.
+The default overall deadline remains 600 seconds.
+
+Each CPU request has fresh phase-specific context, without conversation history,
+completed-action catalogues or a second copy of the schema. The initial phase
+omits unused brief requirements. Both phases retain every scoped source-index row,
+all canonical facts, quality exclusions, missingness and historical notes. Raw
+positive totals supply all raw prerequisites for the allowed explanation codes.
+The final phase includes the chosen follow-up result and brief requirements.
+Fact cohort/view labels occur once per group. Repeated provenance IDs in revision
+lists and redundant report identifiers resolve through the source index and full
+host registry. This projection is explicitly declared in the prompt: full records
+and raw testing/positivity facts remain in the receipt. The schema and validator
+allow only references actually visible in that phase. Mandatory review codes are
+constrained in the final schema as well as checked by the host; optional codes
+remain model choices.
+
+CPU brief citations are a finite choice of one source-index reference per observed
+month, in chronological order (one registry reference if no reports are visible).
+Every combination is available to the model; no scenario answer is selected by the
+host. This enforces distinct, period-covering citations even when the provider's
+grammar ignores `uniqueItems`. The host still checks reference visibility, category
+prerequisites, required supporting metrics and period coverage independently. These
+are concise citations: all input evidence for each numerical statement remains in
+the rendered candidate and full registry.
+
+The loop checks its deadline and cancellation before and after dispatch, and before
+accepting the rendered candidate. Timeout, deadline, cancellation, provider failure
+and evidence validation have distinct failure codes. A response arriving after its
+request allowance is rejected even before the overall deadline. The receipt records
 the configured limits and each dispatched request timeout. A late response cannot
 be accepted after the loop deadline. These
 are not a tested hard end-to-end wall-clock guarantee: source collection precedes
@@ -175,9 +241,12 @@ and the future supervised worker is still required to terminate stalled executio
 Ctrl+C produces a cancelled receipt where possible. No background automatic retry
 is added for failed actual provider requests.
 
-The receipt retains per-turn available actions/phase, model actions, tool arguments/results, bounded provider replies,
+The receipt retains execution profile, per-turn available actions/phase, actual
+timeout, remaining/reserved time, host elapsed time, model actions, tool arguments/results, bounded provider replies,
 usage where available, validation errors, the immutable scope/evidence bundle and
-reference mappings. Provider errors do not expose credentials or raw transport
+reference mappings. Exact request/message/schema byte sizes are separate from token
+counts. Provider token counts and nanosecond timings remain null when absent;
+failed requests retain size/timing diagnostics too. Provider errors do not expose credentials or raw transport
 messages. Timeout, HTTP failure, transport failure, oversized context and invalid
 response have separate sanitised codes. The CLI prints prompt version, call counts
 and failure-stage summaries so the operator can diagnose a failed run directly. Treat trace source/model text as untrusted if a future UI renders it.
@@ -213,24 +282,26 @@ reviewer session/CSRF/idempotency and append-only decisions are a later slice.
 
 ## Actual validation and remaining gates
 
-Local validation: **122 tests pass**, including strict parser/authority boundaries,
-all core/edge scripted cases, earlier-cutoff visibility, unknown references,
-unsupported categories, one repair, repeated calls, call/deadline/cancellation
-budgets, provider failure, prompt-injection labels, actual H-MEM recall without
-current-measurement contamination and saved successful/failed CLI receipts. Fake
-HTTP tests check transport/schema/completion/usage/error handling; these are not
-actual Ollama calls. The built wheel excludes evaluator data/answers and passes
-isolated deterministic and scripted-agent execution outside the repository.
+The [CPU verification record](CPU_VERIFICATION.md) separates actual inference,
+actual H-MEM, deterministic tests, fake HTTP and the combined live gate.
+`qwen2.5:1.5b` generated a valid fixture-backed candidate in two requests, taking
+90.50 and 110.78 seconds. Two earlier actual runs were rejected for missing review
+limitations and repeated evidence IDs; their failed receipts remain preserved.
 
-The operator has already reported actual Zetaris runtime and pinned H-MEM bridge
-acceptance. The operator reported single-action Ollama capability PASS, followed by combined
-run failures on prompt version `investigator-2`. The operator then reported that `investigator-3` completed raw and matched
-follow-ups without validation errors, but timed out on its third model request
-after earlier requests took 129 and 146 seconds. The explicit CPU timeout option
-has simulated latency/deadline coverage; actual complete local Ollama
-acceptance is still pending because the remote
-development environment cannot reach the operator's local service.
-The release design's repeated actual-model scenario evaluations, source-linked
-semantic review, worker interruption/recovery, authenticated human-review UI and
-end-to-end release gates remain pending. GitHub-hosted CI is still subject to the
-known account budget/startup block; no hosted PASS is claimed.
+The combined run reached the configured Zetaris endpoint but failed with the
+sanitised driver message `Error validating the login`, including with the
+operator-supplied credential. No model dispatch or memory recall occurred in those
+combined attempts. This is **BLOCKED**, not PASS; a new combined receipt with
+`data_mode=zetaris`, `model_mode=ollama`, `memory_mode=hmem_reference` and a valid
+review-only candidate is still required.
+
+The full regression suite, independent synthetic evaluator, both scripted profiles,
+actual pinned H-MEM lifecycle checks and isolated wheel checks have separate
+results in the verification record. An initial cross-process lock test exceeded
+its five-second child-process wait during concurrent inference; the final separate
+run passed without relaxing that test. No hosted CI PASS is claimed.
+
+One valid synthetic fixture run does not establish repeated actual-model scenario
+performance or semantic/clinical approval. The authenticated review API/UI,
+supervised worker interruption/recovery, full release evaluation and deployment
+remain pending.

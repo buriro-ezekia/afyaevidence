@@ -45,3 +45,27 @@ even when a provider ignores its schema. Hard call/deadline/repair limits remain
 unchanged. There is no automatic scripted fallback. Fake-HTTP integration can
 prove correct state transitions and formatting, but actual model acceptance must
 be reported separately from those tests.
+
+## CPU scheduling (investigator-4)
+
+The operator's four-call run spent 134.14, 138.41 and 201.18 seconds on exploration
+and exhausted the 600-second deadline during its fourth request. Reserving a call
+alone did not reserve inference time. The CPU profile therefore collects raw
+diagnostics along with quality, canonical facts and scoped memory before dispatch,
+allows one actual model-selected follow-up, then makes the second call brief-only.
+The first timeout reserves `min(request_timeout, deadline / 2)` seconds for the
+brief; all dispatches are bounded by remaining time. Invalid output fails within
+the two-call limit, with no automatic repair or scripted replacement.
+
+Fresh phase projections retain all canonical facts, raw positive prerequisites,
+quality exclusions, scoped source indexes and historical notes. A compact menu
+grounds follow-up selection in prompt text; the full schema occurs only in Ollama's
+format field. The final prompt has only the brief policy, scoped facts, selected
+follow-up result and reference requirements. Full records/provenance remain in the
+receipt. This preserves informed model selection while reducing context. The
+standard four-call/one-repair profile remains available explicitly.
+
+An initial real CPU fixture run reached the brief in 168.58 seconds but omitted a
+mandatory synthetic-data limitation. That failed receipt is retained. The phase
+schema now constrains mandatory review codes in addition to the independent host
+validator; the host does not fill in missing codes or approve a candidate.
