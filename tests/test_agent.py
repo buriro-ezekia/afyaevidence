@@ -92,8 +92,41 @@ class AgentTests(unittest.TestCase):
         self.assertIsNone(result['candidate_brief'])
 
     def test_repeat_call_stops_predictably(self):
-        result=run_agent(self.bundle(),FakeProvider([tool(),tool()]))
+        result=run_agent(self.bundle(),FakeProvider([tool(),tool(),tool()]))
         self.assertEqual('repeated_tool_call',result['failure_reason'])
+        self.assertEqual(1,result['repairs'])
+        self.assertEqual(3,result['tool_calls'])
+        self.assertIsNone(result['candidate_brief'])
+
+    def test_repeated_mandatory_call_can_repair_without_reexecution(self):
+        policy=ScriptedProvider()
+        class RepeatThenRepair:
+            mode='scripted';model='mandatory-repeat-regression'
+            first=True
+            def next_action(inner,messages,*,timeout):
+                if inner.first:
+                    inner.first=False
+                    baseline=json.loads(messages[1]['content'])
+                    self.assertIn(dict(tool='compare_monthly_indicators',arguments={'view':'canonical'}),
+                                  baseline['completed_actions'])
+                    return dict(content=json.dumps(tool('compare_monthly_indicators',{'view':'canonical'})))
+                return policy.next_action(messages,timeout=timeout)
+        result=run_agent(self.bundle(),RepeatThenRepair())
+        self.assertEqual('ready_for_review',result['execution_status'],result['failure_reason'])
+        self.assertEqual(1,result['repairs'])
+        self.assertEqual(4,result['model_calls'])
+        canonical=[e for e in result['trace'] if e['kind']=='tool' and
+                   e['name']=='compare_monthly_indicators' and e['arguments']=={'view':'canonical'}]
+        self.assertEqual(1,len(canonical))
+        self.assertEqual('awaiting_human_review',result['review_status'])
+
+    def test_repeated_mandatory_call_twice_stops_with_no_follow_up(self):
+        duplicate=tool('compare_monthly_indicators',{'view':'canonical'})
+        result=run_agent(self.bundle(),FakeProvider([duplicate,duplicate]))
+        self.assertEqual('repeated_tool_call',result['failure_reason'])
+        self.assertEqual(2,result['model_calls'])
+        self.assertEqual(2,result['tool_calls'])
+        self.assertEqual(1,result['repairs'])
 
     def test_model_and_tool_budgets_stop(self):
         result=run_agent(self.bundle(),FakeProvider([tool()]),budget=Budget(model_calls=1))

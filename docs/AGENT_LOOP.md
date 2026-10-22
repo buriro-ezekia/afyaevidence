@@ -133,7 +133,11 @@ must execute before a candidate brief is accepted.
 
 Hard dispatch limits are four provider calls, ten tool invocations including
 mandatory baselines, and one validation-repair opportunity within that same provider
-budget. A repeated tool+argument pair stops predictably. The loop checks its
+budget. Completed tool+argument pairs are listed explicitly in the initial context.
+A repeated pair is rejected before execution and may consume the single shared
+validation repair; a second invalid action stops predictably. No duplicate tool
+executes, no budget grows, and no failed run falls back to a scripted result.
+The loop checks its
 600-second deadline and cancellation before/after dispatch; per-model request
 socket timeout is at most 180 seconds and bounded by remaining loop time. These
 are not a tested hard end-to-end wall-clock guarantee: source collection precedes
