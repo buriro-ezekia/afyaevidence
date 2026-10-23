@@ -49,6 +49,8 @@ try:
     if not isinstance(d,dict) or not isinstance(d.get('Results'),list):
         raise ValueError('missing_results')
     results=d['Results']
+    if not results or not any(isinstance(r,dict) and r.get('Packages') for r in results):
+        raise ValueError('incomplete_package_inventory')
     counts=collections.Counter()
     scanned=0
     for result in results:
