@@ -116,6 +116,9 @@ def live_http_role_test(role, token, principal):
     try:
         before_code, before = call("GET", base)
         if before_code != 200 or not isinstance(before, dict):
+            print("LIVE_HTTP_GET_STATUS=" + str(before_code))
+            # Only a small allowlist of stable server error codes is reported.
+            # Never print request headers, JWTs, private identifiers or response bodies.
             print("LIVE_HTTP_ROLE=FAIL: authenticated evidence read failed")
             return 1
         if before.get("revision") != 0 or before.get("disposition") is not None:
