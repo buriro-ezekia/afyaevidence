@@ -279,6 +279,72 @@ def live_provider_outage_test(token, port):
     return status
 
 
+
+def live_revocation_test(token, refresh_token, port, opener):
+    """End only the fresh viewer session, then read API with same access token.
+
+    Does not print tokens/refresh tokens or change review records. Fail
+    closed if Keycloak cannot confirm logout or if HTTP still grants access.
+    """
+    from urllib.request import HTTPHandler
+    import time
+    if not isinstance(refresh_token, str) or not refresh_token:
+        print("REVOCATION=BLOCKED: refresh token unavailable")
+        return 2
+    endpoint = f"http://127.0.0.1:{port}/api/runs/run_pending"
+    local = build_opener(ProxyHandler({}), HTTPHandler())
+
+    def read():
+        req = Request(endpoint, method="GET",
+                      headers={"Authorization":"Bearer " + token, "Accept":"application/json"})
+        try:
+            with local.open(req, timeout=9) as response:
+                return response.status
+        except HTTPError as error:
+            return error.code
+        except (OSError, URLError):
+            return 0
+
+    before = read()
+    print("REVOCATION_PRE_HTTP=" + str(before))
+    if before != 200:
+        print("REVOCATION=BLOCKED: no valid authenticated baseline")
+        return 2
+
+    logout_url = AUTHORITY + "/protocol/openid-connect/logout"
+    body = urlencode({"client_id":"afya-human-login",
+                      "refresh_token":refresh_token}).encode()
+    request = Request(logout_url, data=body, method="POST",
+                      headers={"Content-Type":"application/x-www-form-urlencoded"})
+    try:
+        with opener.open(request, timeout=10) as response:
+            if response.status not in (200, 204):
+                raise ValueError("logout_status")
+    except (HTTPError, URLError, OSError, ValueError):
+        print("KEYCLOAK_SESSION_LOGOUT=FAIL")
+        print("REVOCATION=BLOCKED")
+        return 2
+
+    print("KEYCLOAK_SESSION_LOGOUT=PASS")
+    # Keycloak session invalidation should be immediately observable by
+    # mandatory introspection. Allow a small propagation window, never
+    # treating an initial HTTP 200 as success.
+    seen = None
+    deadline = time.monotonic() + 8
+    while True:
+        seen = read()
+        if seen == 401 or time.monotonic() >= deadline:
+            break
+        time.sleep(0.5)
+    print("REVOCATION_POST_HTTP=" + str(seen))
+    if seen == 401:
+        print("LIVE_REVOCATION=PASS")
+        print("REVIEW_WRITE=NOT_RUN")
+        return 0
+    print("LIVE_REVOCATION=FAIL")
+    return 1
+
+
 AUTHORITY = "https://localhost:8443/realms/afya-local"
 CALLBACK = "http://127.0.0.1:8765/callback"
 ALLOWED = frozenset(("viewer", "reviewer", "administrator"))
@@ -295,12 +361,16 @@ def main(argv=None) -> int:
     parser.add_argument("--timeout-seconds", type=int, default=180)
     parser.add_argument("--http-role-test", action="store_true",
                         help="Test HTTP read/write against isolated run_pending")
+    parser.add_argument("--revocation-test", action="store_true",
+                        help="Logout a fresh viewer session then require API 401 for the same token")
     parser.add_argument("--authenticated-outage-test", action="store_true",
                         help="Read-only live outage: stop isolated Keycloak and always attempt restart")
     parser.add_argument("--http-port", type=int, default=8011,
                         help="Loopback identity-review server port (default 8011)")
     args = parser.parse_args(argv)
 
+    if args.revocation_test and (args.http_role_test or args.authenticated_outage_test or args.role != "viewer"):
+        parser.error("revocation test requires --role viewer and excludes other test modes")
     if args.authenticated_outage_test and (args.http_role_test or args.role != "viewer"):
         parser.error("outage test requires --role viewer and excludes --http-role-test")
     if not 1024 <= args.http_port <= 65535:
@@ -468,6 +538,8 @@ def main(argv=None) -> int:
     print("PKCE_ONLINE_INTROSPECTION=PASS")
     print("PKCE_ROLE_" + args.role.upper() + "=PASS")
     print("PKCE_LOGIN=PASS")
+    if args.revocation_test:
+        return live_revocation_test(token, doc.get("refresh_token"), args.http_port, opener)
     if args.authenticated_outage_test:
         return live_provider_outage_test(token, args.http_port)
     if args.http_role_test:
