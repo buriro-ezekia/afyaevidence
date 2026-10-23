@@ -110,13 +110,24 @@ def live_http_role_test(role, token, principal):
                     raise ValueError("oversized_response")
                 return response.status, json.loads(raw)
         except HTTPError as exc:
-            # Never print responses, URLs, authorisation headers or credentials.
-            return exc.code, {}
+            # Only inspect stable allowlisted application error identifiers;
+            # never print arbitrary bodies, URLs, tokens or personal data.
+            safe_codes = {"identity_provider_unavailable", "storage_unavailable",
+                          "operation_unavailable", "unauthorised", "forbidden",
+                          "unknown_run", "not_found"}
+            try:
+                raw_error = exc.read(2048)
+                parsed = json.loads(raw_error)
+                code = parsed.get("error") if isinstance(parsed, dict) else None
+            except (ValueError, UnicodeError, OSError, TypeError):
+                code = None
+            return exc.code, {"safe_error": code if code in safe_codes else "unclassified"}
 
     try:
         before_code, before = call("GET", base)
         if before_code != 200 or not isinstance(before, dict):
             print("LIVE_HTTP_GET_STATUS=" + str(before_code))
+            print("LIVE_HTTP_GET_ERROR=" + str(before.get("safe_error", "unclassified")))
             # Only a small allowlist of stable server error codes is reported.
             # Never print request headers, JWTs, private identifiers or response bodies.
             print("LIVE_HTTP_ROLE=FAIL: authenticated evidence read failed")
