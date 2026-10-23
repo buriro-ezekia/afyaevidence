@@ -91,6 +91,75 @@ def report_diagnostics(structure, transport):
     for key, val in transport.status.items():
         print("INTROSPECTION_" + key.upper() + "=" + ("YES" if val else "NO"))
 
+
+def live_http_role_test(role, token, principal):
+    """One isolated test against loopback port 8011; no token ever logged."""
+    from urllib.request import HTTPHandler
+    base = "http://127.0.0.1:8011/api/runs/run_pending"
+    opener = build_opener(ProxyHandler({}), HTTPHandler())
+
+    def call(method, url, data=None):
+        headers = {"Authorization": "Bearer " + token, "Accept": "application/json"}
+        if data is not None:
+            headers["Content-Type"] = "application/json"
+        req = Request(url, method=method, headers=headers, data=data)
+        try:
+            with opener.open(req, timeout=10) as response:
+                raw = response.read(262145)
+                if len(raw)>262144:
+                    raise ValueError("oversized_response")
+                return response.status, json.loads(raw)
+        except HTTPError as exc:
+            # Never print responses, URLs, authorisation headers or credentials.
+            return exc.code, {}
+
+    try:
+        before_code, before = call("GET", base)
+        if before_code != 200 or not isinstance(before, dict):
+            print("LIVE_HTTP_ROLE=FAIL: authenticated evidence read failed")
+            return 1
+        if before.get("revision") != 0 or before.get("disposition") is not None:
+            print("LIVE_HTTP_ROLE=BLOCKED: run_pending is no longer unreviewed")
+            return 2
+        print("LIVE_HTTP_EVIDENCE_READ=PASS")
+        payload = json.dumps({
+            "expected_revision": 0,
+            "event_key": "live_" + role + "_" + secrets.token_hex(12),
+            "disposition": "request_more_evidence",
+            "reason": "Synthetic identity HTTP acceptance; more evidence required.",
+        }).encode("utf-8")
+        post_code, outcome = call("POST", base + "/reviews", payload)
+        if role != "reviewer":
+            after_code, after = call("GET", base)
+            if (post_code != 403 or after_code != 200
+                    or after.get("revision") != 0 or after.get("disposition") is not None
+                    or after.get("history") != before.get("history")):
+                print("LIVE_HTTP_ROLE=FAIL: denial or immutability mismatch")
+                return 1
+            print("LIVE_HTTP_" + role.upper() + "_WRITE_DENIED=PASS")
+            print("LIVE_HTTP_REVIEW_STATE_UNCHANGED=PASS")
+            print("LIVE_HTTP_ROLE=PASS")
+            return 0
+        after_code, after = call("GET", base)
+        history = after.get("history", []) if isinstance(after, dict) else []
+        final = history[-1] if history else {}
+        who = final.get("identity", {}) if isinstance(final, dict) else {}
+        if (post_code != 200 or outcome.get("revision") != 1 or outcome.get("replayed") is not False
+                or after_code != 200 or after.get("revision") != 1
+                or after.get("disposition") != "request_more_evidence"
+                or len(history) != 1 or final.get("disposition") != "request_more_evidence"
+                or who.get("kind") != "verified_oidc" or who.get("issuer") != principal.issuer
+                or who.get("subject") != principal.subject or "reviewer" not in who.get("roles", [])):
+            print("LIVE_HTTP_ROLE=FAIL: reviewer write/audit mismatch")
+            return 1
+        print("LIVE_HTTP_REVIEWER_WRITE=PASS")
+        print("LIVE_HTTP_VERIFIED_AUDIT=PASS")
+        print("LIVE_HTTP_ROLE=PASS")
+        return 0
+    except (OSError, URLError, ValueError, TypeError, KeyError):
+        print("LIVE_HTTP_ROLE=FAIL: API unavailable or unexpected response")
+        return 1
+
 AUTHORITY = "https://localhost:8443/realms/afya-local"
 CALLBACK = "http://127.0.0.1:8765/callback"
 ALLOWED = frozenset(("viewer", "reviewer", "administrator"))
@@ -105,6 +174,8 @@ def main(argv=None) -> int:
     parser.add_argument("--identity-config", type=Path, required=True)
     parser.add_argument("--role", required=True, choices=sorted(ALLOWED))
     parser.add_argument("--timeout-seconds", type=int, default=180)
+    parser.add_argument("--http-role-test", action="store_true",
+                        help="Test HTTP read/write against isolated run_pending on port 8011")
     args = parser.parse_args(argv)
 
     if not 30 <= args.timeout_seconds <= 600:
@@ -270,6 +341,10 @@ def main(argv=None) -> int:
     print("PKCE_ONLINE_INTROSPECTION=PASS")
     print("PKCE_ROLE_" + args.role.upper() + "=PASS")
     print("PKCE_LOGIN=PASS")
+    if args.http_role_test:
+        status = live_http_role_test(args.role, token, principal)
+        print("REVOCATION=NOT_TESTED")
+        return status
     print("REVIEW_WRITE=NOT_RUN")
     print("REVOCATION=NOT_TESTED")
     return 0
