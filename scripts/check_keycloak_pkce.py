@@ -92,10 +92,10 @@ def report_diagnostics(structure, transport):
         print("INTROSPECTION_" + key.upper() + "=" + ("YES" if val else "NO"))
 
 
-def live_http_role_test(role, token, principal):
+def live_http_role_test(role, token, principal, port=8011):
     """One isolated test against loopback port 8011; no token ever logged."""
     from urllib.request import HTTPHandler
-    base = "http://127.0.0.1:8011/api/runs/run_pending"
+    base = f"http://127.0.0.1:{port}/api/runs/run_pending"
     opener = build_opener(ProxyHandler({}), HTTPHandler())
 
     def call(method, url, data=None):
@@ -189,9 +189,13 @@ def main(argv=None) -> int:
     parser.add_argument("--role", required=True, choices=sorted(ALLOWED))
     parser.add_argument("--timeout-seconds", type=int, default=180)
     parser.add_argument("--http-role-test", action="store_true",
-                        help="Test HTTP read/write against isolated run_pending on port 8011")
+                        help="Test HTTP read/write against isolated run_pending")
+    parser.add_argument("--http-port", type=int, default=8011,
+                        help="Loopback identity-review server port (default 8011)")
     args = parser.parse_args(argv)
 
+    if not 1024 <= args.http_port <= 65535:
+        parser.error("HTTP port must be 1024-65535")
     if not 30 <= args.timeout_seconds <= 600:
         parser.error("timeout must be between 30 and 600 seconds")
     try:
@@ -356,7 +360,7 @@ def main(argv=None) -> int:
     print("PKCE_ROLE_" + args.role.upper() + "=PASS")
     print("PKCE_LOGIN=PASS")
     if args.http_role_test:
-        status = live_http_role_test(args.role, token, principal)
+        status = live_http_role_test(args.role, token, principal, port=args.http_port)
         print("REVOCATION=NOT_TESTED")
         return status
     print("REVIEW_WRITE=NOT_RUN")
