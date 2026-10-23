@@ -174,6 +174,111 @@ def live_http_role_test(role, token, principal, port=8011):
         print("LIVE_HTTP_ROLE=FAIL: API unavailable or unexpected response")
         return 1
 
+
+def live_provider_outage_test(token, port):
+    """Read-only fail-closed check with bounded automatic Keycloak recovery.
+
+    The token stays in memory. No health records, tokens, passwords, environment
+    values or HTTP bodies are logged or persisted.
+    """
+    import subprocess
+    import time
+    from urllib.request import HTTPHandler
+
+    name = "afyaevidence-keycloak-local"
+    endpoint = f"http://127.0.0.1:{port}/api/runs/run_pending"
+    opener = build_opener(ProxyHandler({}), HTTPHandler())
+
+    def api_read():
+        request = Request(endpoint, headers={
+            "Authorization": "Bearer " + token, "Accept": "application/json"},
+            method="GET")
+        try:
+            with opener.open(request, timeout=9) as response:
+                return response.status
+        except HTTPError as exc:
+            return exc.code
+        except (OSError, URLError):
+            return 0
+
+    def docker(*args, timeout=60):
+        return subprocess.run(["docker", *args], check=False, timeout=timeout,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode
+
+    before = api_read()
+    if before != 200:
+        print("OUTAGE_BASELINE_HTTP=" + str(before))
+        print("AUTHENTICATED_OUTAGE=BLOCKED")
+        return 2
+
+    # Refuse to modify an unexpected Docker container or unavailable daemon.
+    try:
+        check = subprocess.run(
+            ["docker", "inspect", "--format", "{{.Config.Image}}|{{.State.Running}}", name],
+            check=False, capture_output=True, text=True, timeout=10)
+        fields = check.stdout.strip().split("|")
+        if (check.returncode != 0 or len(fields) != 2
+                or not fields[0].startswith("quay.io/keycloak/keycloak:")
+                or fields[1] != "true"):
+            print("KEYCLOAK_CONTAINER_PREFLIGHT=BLOCKED")
+            return 2
+    except (OSError, subprocess.TimeoutExpired):
+        print("KEYCLOAK_CONTAINER_PREFLIGHT=BLOCKED")
+        return 2
+
+    started_stop = False
+    status = 2
+    recovered = False
+    try:
+        # Mark before stopping so even Ctrl+C or Docker timeout enters recovery.
+        started_stop = True
+        if docker("stop", "--time", "12", name, timeout=30) != 0:
+            print("KEYCLOAK_OUTAGE_STOP=FAIL")
+        else:
+            print("KEYCLOAK_OUTAGE_STOP=PASS")
+            during = api_read()
+            print("AUTHENTICATED_OUTAGE_HTTP=" + str(during))
+            if during == 503:
+                print("AUTHENTICATED_FAIL_CLOSED=PASS")
+                status = 0
+            else:
+                print("AUTHENTICATED_FAIL_CLOSED=FAIL")
+                status = 1
+    except (OSError, subprocess.TimeoutExpired):
+        print("AUTHENTICATED_OUTAGE=BLOCKED: Docker interruption failed")
+    finally:
+        if started_stop:
+            try:
+                if docker("start", name, timeout=45) == 0:
+                    from urllib.request import HTTPSHandler
+                    cert = Path.home()/".local/state/afyaevidence-keycloak-local/tls/tls.crt"
+                    tls = ssl.create_default_context(cafile=str(cert))
+                    secure = build_opener(ProxyHandler({}), HTTPSHandler(context=tls))
+                    discovery = AUTHORITY + "/.well-known/openid-configuration"
+                    deadline = time.monotonic() + 90
+                    while time.monotonic() < deadline:
+                        try:
+                            with secure.open(discovery, timeout=4) as response:
+                                if response.status == 200:
+                                    recovered = True
+                                    break
+                        except (OSError, URLError, HTTPError):
+                            pass
+                        time.sleep(2)
+                print("KEYCLOAK_RECOVERY=" + ("PASS" if recovered else "FAIL"))
+            except (OSError, ValueError, subprocess.TimeoutExpired):
+                print("KEYCLOAK_RECOVERY=FAIL")
+
+    if not recovered:
+        print("AUTHENTICATED_OUTAGE=INCOMPLETE_RECOVERY")
+        return 2
+    if status == 0:
+        print("AUTHENTICATED_OUTAGE=PASS")
+    print("REVIEW_WRITE=NOT_RUN")
+    print("REVOCATION=NOT_TESTED")
+    return status
+
+
 AUTHORITY = "https://localhost:8443/realms/afya-local"
 CALLBACK = "http://127.0.0.1:8765/callback"
 ALLOWED = frozenset(("viewer", "reviewer", "administrator"))
@@ -190,10 +295,14 @@ def main(argv=None) -> int:
     parser.add_argument("--timeout-seconds", type=int, default=180)
     parser.add_argument("--http-role-test", action="store_true",
                         help="Test HTTP read/write against isolated run_pending")
+    parser.add_argument("--authenticated-outage-test", action="store_true",
+                        help="Read-only live outage: stop isolated Keycloak and always attempt restart")
     parser.add_argument("--http-port", type=int, default=8011,
                         help="Loopback identity-review server port (default 8011)")
     args = parser.parse_args(argv)
 
+    if args.authenticated_outage_test and (args.http_role_test or args.role != "viewer"):
+        parser.error("outage test requires --role viewer and excludes --http-role-test")
     if not 1024 <= args.http_port <= 65535:
         parser.error("HTTP port must be 1024-65535")
     if not 30 <= args.timeout_seconds <= 600:
@@ -359,6 +468,8 @@ def main(argv=None) -> int:
     print("PKCE_ONLINE_INTROSPECTION=PASS")
     print("PKCE_ROLE_" + args.role.upper() + "=PASS")
     print("PKCE_LOGIN=PASS")
+    if args.authenticated_outage_test:
+        return live_provider_outage_test(token, args.http_port)
     if args.http_role_test:
         status = live_http_role_test(args.role, token, principal, port=args.http_port)
         print("REVOCATION=NOT_TESTED")
