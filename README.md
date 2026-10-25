@@ -126,6 +126,17 @@ and does not modify previously signed packages, reviews or Keycloak.
 The runner has its own regression tests and Python syntax preflight.
 Operator execution and production security clearance are distinct gates.
 
+### Hosted CI and security readiness
+
+The [hosted CI and security readiness audit](docs/CI_AND_SECURITY_READINESS.md)
+records a GitHub Actions failure that occurred before any runner or
+job steps were assigned, the workflow's independent Python matrix
+checks, and a read-only local dependency/Trivy evidence capture.
+The latest locally reported 312-test suite passed, but hosted CI
+remains failing and its external startup cause is not yet established.
+Python dependencies are not fully hash-locked or vulnerability-cleared.
+Keycloak CVE and production-security gates remain blocked.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
