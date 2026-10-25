@@ -156,6 +156,58 @@ so `HACKATHON_INTEGRATED_RECEIPT=PASS` is not an independent
 service attestation; keep terminal logs or a recorded terminal
 demonstration showing actual service interaction.
 
+## Current combined integration milestone — 25 October 2026
+
+The operator has now run an actual combined investigation with:
+`DATA_MODE=zetaris`, `MODEL_MODE=ollama` and
+`MEMORY_MODE=hmem_reference`. The agent reported
+`AGENT_EXECUTION=PASS`, `EXECUTION_STATUS=ready_for_review`,
+`LIVE_ZETARIS=PASS`, `LIVE_MODEL=PASS`, `LIVE_HMEM=PASS`,
+two model calls, five tool calls, zero repairs, and
+`EXPLANATION=reporting_artefact_supported`. The candidate stayed
+`awaiting_human_review`. Exactly **zero** historical notes were
+recalled and no memory sync remained pending. It would be incorrect
+to say historical H-MEM notes influenced that result.
+
+The operator's corrected read-only gate returned
+`HACKATHON_INTEGRATED_RECEIPT=PASS` and
+`HACKATHON_DEMO_GATE=READY_FOR_OPERATOR_WITNESS` using
+`runtime/hackathon-integrated-20261025T175903Z.json`.
+This is verified **operator receipt evidence**; it does not itself
+cryptographically attest the external services. The primary remaining
+demonstration task is showing a coherent, source-backed workflow
+without revealing credentials.
+
+### Prepare the minimal presentation witness
+
+A new read-only helper selects only known non-sensitive receipt fields,
+writes their SHA-256 digests and records human-review and synthetic
+scope limitations. It **does not embed full receipts**, raw metrics,
+private model prompts, JDBC strings, credentials or source records.
+
+```bash
+cd "$HOME/afyaevidence-keycloak-live"
+source "$HOME/.venvs/afyaevidence-identity/bin/activate"
+export PYTHONPATH="$PWD/src"
+
+python -m py_compile scripts/prepare_hackathon_witness.py tests/test_hackathon_witness.py
+python -m unittest discover -s tests -p 'test_hackathon_witness.py' -v
+
+python scripts/prepare_hackathon_witness.py \\
+  --fixture-receipt runtime/offline-demo-receipt.json \\
+  --integrated-receipt runtime/hackathon-integrated-20261025T175903Z.json \\
+  --out runtime/hackathon-witness-20261025.json
+```
+
+The witness must report `HACKATHON_WITNESS=PASS` and
+`HACKATHON_SERVICE_ATTESTATION=NOT_INDEPENDENTLY_VERIFIED`.
+A witness is an aid to demonstration, **not** independent source
+authentication or a successful public submission. Keep the full
+receipt private. For video, show the terminal execution summary,
+the high-level workflow diagram, human-review banner and the
+read-only offline briefcase; do not show terminal history or type
+private JDBC passwords into a recorded screen.
+
 ## Submission and optional LinkedIn bonus
 
 Only include what was actually demonstrated. A credible demo can
