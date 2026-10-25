@@ -162,6 +162,17 @@ live services; the combined operator receipt remains pending. The
 demo is an evidence-cited synthetic investigation awaiting human review,
 not clinical or production deployment.
 
+### Submission witness for the Open Agent Hackathon
+
+A new [read-only hackathon witness procedure](docs/HACKATHON_SUBMISSION_READINESS.md)
+produces a minimal, credential-free verification summary from the
+previously successful fixture and integrated Zetaris/Ollama/H-MEM agent
+receipts. It records receipt digests and human-review safeguards, not
+sensitive source data, independent service attestations or clinical
+approval. The operator reported actual integrated agent completion on
+25 October 2026; a concise demonstration and the final submission
+remain to be completed.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
