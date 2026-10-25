@@ -132,8 +132,9 @@ The [hosted CI and security readiness audit](docs/CI_AND_SECURITY_READINESS.md)
 records a GitHub Actions failure that occurred before any runner or
 job steps were assigned, the workflow's independent Python matrix
 checks, and a read-only local dependency/Trivy evidence capture.
-The latest locally reported 312-test suite passed, but hosted CI
-remains failing and its external startup cause is not yet established.
+The latest locally reported **319-test** suite passed. GitHub Actions
+is blocked by a personal-account billing restriction, but independent
+CircleCI pipeline #1 passed all three Python matrix jobs.
 Python dependencies are not fully hash-locked or vulnerability-cleared.
 Keycloak CVE and production-security gates remain blocked.
 
@@ -144,11 +145,22 @@ adds `.circleci/config.yml` on this draft branch with independent
 Python 3.12–3.14 jobs, a strict Node 24 preflight, optional identity
 dependencies, the full synthetic fixture verifier and completeness
 audit. It does not use GitHub Actions or production service credentials.
-The operator must still connect the GitHub repository to CircleCI and
-select the `work/keycloak-live-acceptance` branch. **No CircleCI
-hosted pass has been observed yet.** GitHub Actions remains affected
+The operator connected the GitHub repository and observed **CircleCI
+pipeline #1 PASS**, with Python 3.12, 3.13 and 3.14 matrix jobs green
+at commit `391237a`. Individual step-level logs remain to be reviewed. GitHub Actions remains affected
 by the separate account-billing restriction and production security
 remains blocked.
+
+### Open Agent Hackathon 2026 submission scope
+
+The [hackathon readiness runbook](docs/HACKATHON_SUBMISSION_READINESS.md)
+records the email's 27 October 2026, 23:45 UTC submission deadline,
+successful synthetic and CircleCI evidence, and a read-only gate for a
+**new actual Zetaris + Ollama + Meterless H-MEM combined run**.
+Synthetic fixture success must not be confused with proof of current
+live services; the combined operator receipt remains pending. The
+demo is an evidence-cited synthetic investigation awaiting human review,
+not clinical or production deployment.
 
 ## Investigation contract
 
