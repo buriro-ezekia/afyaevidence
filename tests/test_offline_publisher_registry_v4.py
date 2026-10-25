@@ -151,6 +151,28 @@ class PublisherRegistryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             V4.verify_package(self.verify_args,self.now)
 
+    def test_revoked_key_cannot_be_reactivated_in_a_later_registry(self):
+        self.assertEqual(V4.verify_package(self.verify_args,self.now),0)
+        revoked=self.path/"registry-v2.json"
+        self.make_registry(2,revoked,self.registry,V3.key_id(self.signer_priv.public_key()))
+        self.verify_args.registry=revoked
+        with self.assertRaises(ValueError):
+            V4.verify_package(self.verify_args,self.now+timedelta(hours=2))
+        # A forged but root-signed v3 reactivation must fail against local
+        # recipient state, even if its signature and version are valid.
+        restored=self.path/"registry-v3.json"
+        self.make_registry(3,restored,revoked)
+        doc=json.loads(restored.read_text())
+        doc["publishers"][0]["status"]="active"
+        payload={k:doc[k] for k in doc if k!="signature_b64"}
+        import base64
+        doc["signature_b64"]=base64.b64encode(
+            self.root_priv.sign(V4.REGISTRY_DOMAIN+V4.canonical(payload))).decode()
+        restored.write_bytes(V4.canonical(doc))
+        self.verify_args.registry=restored
+        with self.assertRaises(ValueError):
+            V4.verify_package(self.verify_args,self.now+timedelta(hours=3))
+
     def test_invalid_registry_signed_issuer_not_auto_trusted(self):
         doc=json.loads(self.registry.read_text())
         doc["root_key_id"]="f"*64
