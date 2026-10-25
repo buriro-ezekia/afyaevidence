@@ -1,5 +1,16 @@
 # AfyaEvidence architecture
 
+> **Implementation-status note (25 October 2026):** The document below is
+> the original version 0.1 design, not a definitive description of every
+> subsequently implemented adapter. The current local implementation uses a
+> Python standard-library loopback HTTP server (rather than the planned
+> FastAPI/Pydantic stack), a separately verified OIDC resource server,
+> SQLite review-history extensions and systemd-managed workers. These were
+> tested locally on synthetic evidence; production deployment and clinical
+> approval remain unverified. See [the current README](../README.md) and
+> [the completeness audit](PROJECT_COMPLETENESS_AUDIT.md).
+>
+
 Version 0.1 design | 21 October 2026 | Proposed implementation, not a verified application
 
 ## 1. User, question and outcome
