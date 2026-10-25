@@ -74,12 +74,13 @@ extract and a SHA-256 manifest in one locally stored ZIP. The verifier checks
 contents and reports whether its stated review-by time has passed. The offline
 HTML continues to warn that a disconnected copy may now be stale.
 
-The package is **unsigned**, so hashes do not establish the publisher's
+The v2 package is **unsigned**, so hashes do not establish the publisher's
 identity without a separately trusted expected package hash. It does not
 cache authentication, collect new Zetaris data, submit offline review
 decisions or synchronise changes. This is an offline-read demonstration
-rather than a production offline-first system. Browser reopening and the
-latest v2 regression tests require operator acceptance.
+rather than a production offline-first system. Local v2 ZIP integrity and
+offline browser rendering have been demonstrated; a complete recorded
+forced-reload acceptance and hosted verification are separate gates.
 
 ### Signed offline packages v3 (development slice)
 
@@ -94,8 +95,9 @@ honestly labels offline revocation status as unchecked.
 A valid signature identifies a key trusted by the local recipient,
 not an automatically verified healthcare organisation or an approved
 public-health assessment. No authenticated offline review, live
-source refresh or synchronisation is introduced. Tests and signing
-acceptance on the operator's WSL machine are still required.
+source refresh or synchronisation is introduced. The operator reported
+successful signed-package verification and 12 passing v3 security tests;
+independent publisher identity and production approval remain outstanding.
 
 ### Publisher trust registry v4 (development slice)
 
