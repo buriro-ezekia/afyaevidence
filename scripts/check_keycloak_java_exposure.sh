@@ -60,20 +60,31 @@ if ! "$KEYTOOL" -list -keystore "$CA" -storepass changeit >/dev/null 2>&1; then
   echo "JAVA_KEYTOOL=BLOCKED_UNREADABLE_STORE"
   exit 2
 fi
-if "$KEYTOOL" -list -keystore "$CA" -storepass changeit -v 2>/dev/null |
-  grep -Eiq "Owner:.*emSign ECC Root CA - G3|Owner:.*eMudhra"; then
+# Capture the *whole* successful listing before searching it; a failed
+# verbose listing must not be mistaken for the absence of a root certificate.
+if ! CERT_LIST="$("$KEYTOOL" -list -keystore "$CA" -storepass changeit -v 2>/dev/null)"; then
+  echo "JAVA_CERTIFICATE_LIST=BLOCKED_UNREADABLE_STORE"
+  exit 2
+fi
+echo "JAVA_CERTIFICATE_LIST=PASS"
+if grep -Eiq "Owner:.*emSign ECC Root CA - G3|Owner:.*eMudhra" <<< "$CERT_LIST"; then
   echo "EMUDHRA_ROOT_MATCH=FOUND_REQUIRES_REVIEW"
 else
-  echo "EMUDHRA_ROOT_MATCH=NOT_FOUND_IN_KEYTOOL_OUTPUT"
+  echo "EMUDHRA_ROOT_MATCH=NOT_FOUND_IN_KEYTOOL_OUTPUT_NOT_PROOF_OF_MITIGATION"
 fi
 if command -v java >/dev/null 2>&1; then
-  if java --list-modules 2>/dev/null | grep -q "^java.desktop@"; then
+  if ! MODULE_LIST="$(java --list-modules 2>/dev/null)"; then
+    echo "JAVA_MODULE_LIST=BLOCKED"
+    exit 2
+  fi
+  if grep -q "^java.desktop@" <<< "$MODULE_LIST"; then
     echo "JAVA_DESKTOP_MODULE=PRESENT"
   else
     echo "JAVA_DESKTOP_MODULE=NOT_LISTED"
   fi
 else
   echo "JAVA_RUNTIME=BLOCKED_UNAVAILABLE"
+  exit 2
 fi
 echo "CVE_2026_91403=REQUIRES_VENDOR_REVIEW"
 echo "CVE_2026_91415=REQUIRES_EXPOSURE_AND_VENDOR_REVIEW"
