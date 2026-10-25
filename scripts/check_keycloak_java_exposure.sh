@@ -67,7 +67,7 @@ if ! CERT_LIST="$("$KEYTOOL" -list -keystore "$CA" -storepass changeit -v 2>/dev
   exit 2
 fi
 echo "JAVA_CERTIFICATE_LIST=PASS"
-if grep -Eiq "Owner:.*emSign ECC Root CA - G3|Owner:.*eMudhra" <<< "$CERT_LIST"; then
+if [[ "$CERT_LIST" =~ Owner:.*(emSign[[:space:]]ECC[[:space:]]Root[[:space:]]CA[[:space:]]-[[:space:]]G3|eMudhra) ]]; then
   echo "EMUDHRA_ROOT_MATCH=FOUND_REQUIRES_REVIEW"
 else
   echo "EMUDHRA_ROOT_MATCH=NOT_FOUND_IN_KEYTOOL_OUTPUT_NOT_PROOF_OF_MITIGATION"
@@ -77,7 +77,20 @@ if command -v java >/dev/null 2>&1; then
     echo "JAVA_MODULE_LIST=BLOCKED"
     exit 2
   fi
-  if grep -q "^java.desktop@" <<< "$MODULE_LIST"; then
+  if [[ "$MODULE_LIST" =~ (^|
+    echo "JAVA_DESKTOP_MODULE=PRESENT"
+  else
+    echo "JAVA_DESKTOP_MODULE=NOT_LISTED"
+  fi
+else
+  echo "JAVA_RUNTIME=BLOCKED_UNAVAILABLE"
+  exit 2
+fi
+echo "CVE_2026_91403=REQUIRES_VENDOR_REVIEW"
+echo "CVE_2026_91415=REQUIRES_EXPOSURE_AND_VENDOR_REVIEW"
+echo "CONTAINER_RELEASE=BLOCKED"
+'
+\n')java[.]desktop@ ]]; then
     echo "JAVA_DESKTOP_MODULE=PRESENT"
   else
     echo "JAVA_DESKTOP_MODULE=NOT_LISTED"
