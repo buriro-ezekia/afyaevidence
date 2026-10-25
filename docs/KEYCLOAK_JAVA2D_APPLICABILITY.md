@@ -185,8 +185,12 @@ exclusive**: `JTS_FONT_GLYPH=1`, `ZXING_MATRIX_IMAGE=3`,
 
 The separate print command filtered out records that matched only
 `JAVA_IMAGEIO`. It printed **15 classes rather than all 17**.
-The identities of the two omitted entries must be obtained from the local
-JSON report; do not infer them from category totals.
+The two omitted entries have now been identified from the preserved local
+JSON report as ZXing Java SE 3.4.0 `DecodeWorker.class` and
+`ImageReader.class`, both with only `JAVA_IMAGEIO` references. All **17**
+matched class records are accounted for; there are no unexplained count
+differences. Neither class alone demonstrates font rendering or a remotely
+reachable vulnerability.
 
 ### Reachability observations
 
