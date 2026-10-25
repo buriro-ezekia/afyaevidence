@@ -64,7 +64,7 @@ Its initial synthetic contract covers six fictional facilities, January 2024–D
 | H-MEM | [Memory bridge](docs/HMEM_BRIDGE.md) |
 | Review identity and supervision | [Identity and managed workers](docs/IDENTITY_WORKER_IMPLEMENTATION.md), [Review supervision](docs/REVIEW_SUPERVISION.md) |
 | Keycloak testing | [Live acceptance](docs/KEYCLOAK_LIVE_ACCEPTANCE.md), [PKCE smoke test](docs/KEYCLOAK_PKCE_SMOKE.md), [HTTP roles](docs/KEYCLOAK_HTTP_ROLE_ACCEPTANCE.md) |
-| Security and release | [Keycloak residual risk](docs/KEYCLOAK_RESIDUAL_SECURITY.md), [Project completeness](docs/PROJECT_COMPLETENESS_AUDIT.md), [Implementation backlog](docs/IMPLEMENTATION.md) |
+| Security and release | [Keycloak residual risk](docs/KEYCLOAK_RESIDUAL_SECURITY.md), [Java 2D applicability](docs/KEYCLOAK_JAVA2D_APPLICABILITY.md), [Project completeness](docs/PROJECT_COMPLETENESS_AUDIT.md), [Implementation backlog](docs/IMPLEMENTATION.md) |
 | Supporting references | [Contracts](docs/CONTRACTS.md), [Integration decisions](docs/adr/0001-local-runtime-and-adapters.md), [Source register](docs/SOURCES.md) |
 
 ## How to contribute and review
