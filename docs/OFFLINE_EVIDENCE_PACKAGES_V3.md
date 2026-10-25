@@ -176,6 +176,14 @@ Temporary per-test public-key fingerprints are expected to differ.
 The earlier actual v3 package verification is recorded separately.
 **Release approval and online revocation assurance remain outstanding.**
 
+## Next level: registered publisher trust
+
+The [v4 registry guide](OFFLINE_EVIDENCE_PACKAGES_V4.md) introduces a
+root-signed, versioned publisher trust list, recorded revocations,
+key rotation and bounded offline trust age. v3's single locally trusted
+public-key directory remains supported for its earlier acceptance
+tests, but is not equivalent to the v4 registry policy.
+
 ## Revocation and security limitations
 
 An offline recipient cannot learn that a trusted signing key has been
