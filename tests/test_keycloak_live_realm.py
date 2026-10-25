@@ -1,5 +1,7 @@
 """Tests for safe, read-only Keycloak admin inspection."""
 import importlib.util
+import base64
+import json
 from pathlib import Path
 import subprocess
 import sys
@@ -90,6 +92,20 @@ class LiveRealmAuditTests(unittest.TestCase):
                 self.fail("request must not occur")
         with self.assertRaises(ValueError):
             MOD.fetch_stage(NoRequestOpener(), "token", "/components", "other")
+
+    def test_token_expiry_is_caught_before_admin_call(self):
+        claims = {"iss": "https://localhost:8443/realms/master", "exp": 100}
+        body = base64.urlsafe_b64encode(json.dumps(claims).encode()).decode().rstrip("=")
+        token = "eyJhbGciOiJSUzI1NiJ9." + body + ".c2ln"
+        self.assertEqual(MOD.token_preflight(token, now=101),
+                         ("EXPIRED", "master", 0))
+        self.assertEqual(MOD.token_preflight(token, now=90),
+                         ("UNVERIFIED_ACTIVE_CLAIM", "master", 10))
+
+    def test_token_prefix_and_missing_structure_fail_closed(self):
+        self.assertEqual(MOD.token_preflight("Bearer a.b.c")[0],
+                         "INVALID_PRESENTATION")
+        self.assertEqual(MOD.token_preflight("no-jwt")[0], "INVALID_FORMAT")
 
     def test_no_authentication_provided_by_script(self):
         self.assertEqual(MOD.ORIGIN, "https://localhost:8443")
