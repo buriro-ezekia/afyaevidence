@@ -81,6 +81,22 @@ decisions or synchronise changes. This is an offline-read demonstration
 rather than a production offline-first system. Browser reopening and the
 latest v2 regression tests require operator acceptance.
 
+### Signed offline packages v3 (development slice)
+
+The [v3 signed-distribution guide](docs/OFFLINE_EVIDENCE_PACKAGES_V3.md)
+explains how to apply an Ed25519 detached signature to the existing
+read-only synthetic v2 ZIP and verify it against an **explicitly installed
+trusted public key**. The signing private key stays outside Git.
+Verification checks the v2 package's contents and SHA-256 hashes
+before accepting its signature. It reports stale packages and
+honestly labels offline revocation status as unchecked.
+
+A valid signature identifies a key trusted by the local recipient,
+not an automatically verified healthcare organisation or an approved
+public-health assessment. No authenticated offline review, live
+source refresh or synchronisation is introduced. Tests and signing
+acceptance on the operator's WSL machine are still required.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
