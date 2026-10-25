@@ -320,6 +320,35 @@ proves CVE-2026-91415 reachability or non-applicability.** If the
 admin API cannot be accessed, the security evidence is explicitly
 `NOT_VERIFIED`, not invented.
 
+### Stopped-container extension and theme inventory
+
+`scripts/audit_keycloak_container_extensions.py` inspects only
+`/opt/keycloak/providers` and `/opt/keycloak/themes` in the **existing**
+`afyaevidence-keycloak-local` container. It works even when that container
+is stopped. Docker copies these two directories to a short-lived local
+temporary directory; the script counts provider JARs, theme directories and
+theme files, then deletes the temporary copy. It never reads
+`/opt/keycloak/data`, mounts the realm volume, starts the container or
+makes a network request. Names, themes and provider byte content are
+not included in the final JSON report.
+
+```bash
+python scripts/audit_keycloak_container_extensions.py \\
+  --report runtime/security/keycloak-extension-inventory.json
+```
+
+This reports **presence**, not which extension classes are invoked.
+Container image built-in providers may not reside under `providers/`.
+If the provider or theme directory cannot be read, the result stays
+`NOT_VERIFIED`, rather than being silently reported as empty.
+
+The live realm administrator audit (described above) checks configured
+OTP required actions, the browser-flow steps and theme settings, but
+does **not** establish all nested subflows or actual browser-route
+reachability. It requires an authorised admin token and running
+Keycloak. Do not claim these checks were performed until the operator
+supplies their results; no admin credentials should be shared.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
