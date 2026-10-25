@@ -144,7 +144,7 @@ Additional code/API references:
 - https://github.com/zxing/zxing/blob/zxing-3.4.0/javase/src/main/java/com/google/zxing/client/j2se/MatrixToImageWriter.java
 - https://javadoc.io/static/org.locationtech.jts/jts-core/1.19.0/org/locationtech/jts/awt/FontGlyphReader.html
 
-## Focused reverse-reference verification — committed, not yet run on candidate
+## Focused reverse-reference verification — locally completed, CVE still open
 
 The follow-up script `scripts/audit_keycloak_java2d_reverse_refs.py`
 reads JVM class-file constant-pool UTF-8 entries from the exact pinned
@@ -169,9 +169,65 @@ A reference from a library to its own class or a graphics API is
 not evidence that a Keycloak request exercises that code. The
 result must be inspected by class owner and call path, ideally alongside
 an exact vendor patch or affected-method description.
-The command and tests are committed, but have **not yet passed in
-the operator's environment**. Preserve the existing JSON reports and
-do not overwrite their evidential record.
+The operator has completed the candidate reverse-reference scan; the focused
+four-test outcome was not included in the supplied output. Preserve the existing
+JSON reports and do not overwrite their evidential record.
+
+## Candidate reverse-reference results — 25 October 2026
+
+The operator reported `JAVA2D_REVERSE_AUDIT=PASS` for the same pinned
+candidate: **355 JARs**, **69,885 class files** inspected, with **17
+reference-bearing classes**. All 17 appeared in `main`; none were reported
+in `app` or `providers`. Counts of references are **not mutually
+exclusive**: `JTS_FONT_GLYPH=1`, `ZXING_MATRIX_IMAGE=3`,
+`JAVA_AWT_FONT=8`, `JAVA_FONT_PACKAGE=1`,
+`JAVA2D_GRAPHICS=4`, `JAVA_IMAGEIO=6`.
+
+The separate print command filtered out records that matched only
+`JAVA_IMAGEIO`. It printed **15 classes rather than all 17**.
+The identities of the two omitted entries must be obtained from the local
+JSON report; do not infer them from category totals.
+
+### Reachability observations
+
+- The **single** `JTS_FONT_GLYPH` hit was
+  `org/locationtech/jts/awt/FontGlyphReader.class` itself. This is not
+  evidence that a separate Keycloak class calls that method. There was no
+  independent reverse-reference to `FontGlyphReader` in the supplied
+  records. A constant-pool reference can be a self-reference, not a
+  call-site; reflection, native calls and dynamic loading remain outside
+  this method.
+- Among the **three** `ZXING_MATRIX_IMAGE` hits, one belongs to
+  `org/keycloak/utils/QRCodeUtils.class`, directly corroborating the
+  tagged Keycloak OTP QR-code generation path. The other two are within
+  the ZXing library itself. The writer constructs a `BufferedImage`,
+  sets its pixels and invokes `ImageIO.write`; the documented path
+  does not establish untrusted font rendering.
+- AWT font references in JGroups graphical demonstrations and H2's GUI
+  console establish included **utility classes**, not reachable
+  authentication endpoints. SOAP/JAXB ImageIO handlers similarly warrant
+  source review only if an application endpoint or integration exercises
+  them.
+- **No matches in `app` and `providers`** means no target references
+  were detected there by this particular scanner, not a proof that custom
+  extensions are absent or that all possible call paths have been ruled out.
+
+### Assurance and release implications
+
+The evidence narrows the likely surface: server-side image generation is
+real and traceable, whereas **an independent caller of JTS's
+`FontGlyphReader` is not demonstrated**. This must not be inverted into
+proof of non-applicability. The scanner performs constant-pool string
+inspection; it neither proves method invocation nor tracks user-controlled
+input to the OpenJDK method implicated by CVE-2026-91415.
+**APPLICATION_REACHABILITY=NOT_VERIFIED**, **CVE_2026_91415=OPEN**
+and **CONTAINER_RELEASE=BLOCKED** remain the correct outcomes.
+
+The next evidential priorities are the two omitted ImageIO-only records,
+confirmation of the actual realm's OTP and provider/theme configuration
+without exposing credentials or user data, and vendor disclosure of
+affected OpenJDK call sites or a supported patched build. Any
+risk exception requires independent security sign-off.
 
 ## Release acceptance and targeted next checks
 
