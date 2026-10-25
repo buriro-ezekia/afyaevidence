@@ -1,6 +1,9 @@
 """Tests for safe, read-only Keycloak admin inspection."""
 import importlib.util
 from pathlib import Path
+import subprocess
+import sys
+import tempfile
 import unittest
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/audit_keycloak_live_realm.py"
@@ -44,6 +47,16 @@ class LiveRealmAuditTests(unittest.TestCase):
         handler = MOD.NoRedirect()
         self.assertIsNone(handler.redirect_request(None, None, 302, "Moved", None,
                                                   "https://unexpected.example/"))
+
+    def test_script_starts_from_unrelated_working_directory(self):
+        with tempfile.TemporaryDirectory() as temp:
+            result = subprocess.run(
+                [sys.executable, str(SCRIPT), "--help"],
+                cwd=temp, capture_output=True, text=True, timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("--ca-cert", result.stdout)
+            self.assertIn("--report", result.stdout)
 
     def test_no_authentication_provided_by_script(self):
         self.assertEqual(MOD.ORIGIN, "https://localhost:8443")
