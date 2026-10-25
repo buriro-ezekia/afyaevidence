@@ -58,6 +58,29 @@ file. The previously observed 14 realm provider components are not
 custom JAR counts. The independent OpenJDK applicability and release
 security gates remain open.
 
+## Latest integrated verification — 25 October 2026 (312 tests)
+
+After activating Node.js 24 and rerunning the current integration
+branch, the operator reported **312 tests in 64.550 seconds — OK**
+and `IDENTITY_WORKER_TESTS=PASS`. The three real-CLI v4
+rotation/revocation acceptance regressions are included in this expanded
+suite. All **15 synthetic snapshots**, **16 evaluation cases** and
+**32 scripted agent runs** across standard and CPU profiles passed.
+The six H-MEM reference and state checks, isolated runtime-wheel checks,
+evaluator-key/source-data exclusion and `pip check` also passed.
+
+Verification directory:
+`runtime/identity-verification-20261025T102114215570Z`.
+
+Wheel SHA-256:
+`d9995ef424f03b441978cd277e0553da0521f8bbe2a41f90e618accaf214d80a`.
+
+The operator's previous Node 22 preflight BLOCK and earlier local 309-test
+PASS remain historical evidence. This is **local synthetic and scripted
+verification**, not a successful hosted GitHub Actions check, live
+Zetaris or Ollama test, current Keycloak CVE clearance or production
+deployment approval. `PROJECT_RELEASE=BLOCKED`.
+
 ## Full verification acceptance — 25 October 2026
 
 The operator subsequently reran the integrated verification after the
