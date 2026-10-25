@@ -2,6 +2,31 @@
 
 **Audit date:** 25 October 2026. **Branch:** `work/keycloak-live-acceptance` (draft PR #4). This is a repository/source and operator-evidence audit, not a fresh execution on the user's WSL host or independent security certification.
 
+## Verification update — 25 October 2026, latest operator run
+
+Following explicit Node.js 24 activation, the operator reports **264 tests
+passed in 60.056 seconds**, `IDENTITY_WORKER_TESTS=PASS`, and
+`python -m pip check` returning *No broken requirements found*.
+The same full fixture verification confirms 15 synthetic snapshots,
+16 independent evaluation cases, 32 scripted agent executions across
+standard and CPU profiles, six H-MEM checks, isolated wheel execution
+and exclusion of evaluator keys and source data.
+
+The verified output directory is
+`runtime/identity-verification-20261025T055816480085Z`.
+The wheel `afyaevidence-0.1.0-py3-none-any.whl` was 71,013 bytes,
+SHA-256 `492adc0da825403d7eb90740c45f9c6072a83b957fcfa0effe6a49c3a634c8bb`.
+The previous failed 259-test run remains legitimate audit evidence of
+a Node **22.23.2** execution environment and must not be deleted.
+The launcher now records active Node version and blocks incompatible
+versions before running the suite. The older **244-pass** baseline is
+superseded by this 264-pass operator report.
+
+The successful checks are still **local operator evidence**. Live Zetaris,
+Ollama and H-MEM were explicitly NOT_RUN in this invocation, while
+hosted CI, independent container-security review and deployment approval
+remain outstanding. `PROJECT_RELEASE=BLOCKED`.
+
 ## Summary
 
 AfyaEvidence is a working **synthetic evidence-review prototype**, with local verification across source inspection, fixture generation, agent orchestration, H-MEM, authenticated review, isolated human dispositions and systemd-managed workers. **Production and clinical release are not authorised.**
