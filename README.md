@@ -36,12 +36,15 @@ cd "$HOME/afyaevidence-keycloak-live"
 source "$HOME/.venvs/afyaevidence-identity/bin/activate"
 source "$HOME/.nvm/nvm.sh"
 nvm use 24
+node --version  # Must report v24.x; Node 22 cannot run the pinned H-MEM bridge
 export PYTHONPATH="$PWD/src"
 
 python scripts/verify_identity_worker.py
 python scripts/verify_identity_worker.py --fixtures
 python scripts/audit_project_completeness.py --json runtime/project-audit.json
 ```
+
+The full verification command now checks the active Node.js version before running tests. A shell using Node 22 is reported as `NODE_PREFLIGHT=BLOCKED_NODE_24_REQUIRED`, not as a set of unrelated H-MEM test failures. Activate Node 24 with `nvm use 24` in **each fresh terminal** before verification. Do not relax the memory bridge's Node requirement.
 
 Fixture tests do not require live health data, Zetaris access or Ollama inference. The documented Keycloak tests require an explicitly configured local HTTPS provider and private credentials; they should only use disposable synthetic review data.
 
