@@ -19,6 +19,8 @@ TARGET = {"CVE-2026-91403", "CVE-2026-91415"}
 EXPECTED_MANIFEST = "sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc"
 SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN")
 MAX_REPORT = 25_000_000
+REQUIRED_RUNTIME = ("PyJWT", "cryptography")
+OPTIONAL_BUILD = ("setuptools",)
 
 
 def analyse(report):
@@ -47,6 +49,24 @@ def analyse(report):
     return packages, findings, tracked
 
 
+def dependency_inventory(version_lookup=metadata.version):
+    """Keep isolated build tools optional; require only identity runtime packages."""
+    installed = {}
+    missing_runtime = []
+    for name in REQUIRED_RUNTIME:
+        try:
+            installed[name] = version_lookup(name)
+        except metadata.PackageNotFoundError:
+            installed[name] = "MISSING"
+            missing_runtime.append(name)
+    for name in OPTIONAL_BUILD:
+        try:
+            installed[name] = version_lookup(name)
+        except metadata.PackageNotFoundError:
+            installed[name] = "NOT_INSTALLED_ISOLATED_BUILD_DEPENDENCY"
+    return installed, missing_runtime
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--trivy-report", required=True, type=Path,
@@ -68,10 +88,9 @@ def main():
             raise ValueError("invalid_trivy_report_size")
         blob = args.trivy_report.read_bytes()
         packages, findings, tracked = analyse(json.loads(blob))
-        required = {"PyJWT", "cryptography", "setuptools"}
-        installed = {}
-        for name in sorted(required):
-            installed[name] = metadata.version(name)
+        installed, missing_runtime = dependency_inventory()
+        if missing_runtime:
+            raise ValueError("missing_runtime_dependency:" + ",".join(missing_runtime))
         pip = subprocess.run([sys.executable, "-m", "pip", "check"],
                              capture_output=True, text=True, timeout=40)
         data = {
@@ -87,6 +106,7 @@ def main():
             "tracked_advisories_reported": sorted(tracked),
             "tracked_advisories_absent_not_proof_of_fix": sorted(TARGET - tracked),
             "python_dependencies": installed,
+            "build_dependency_note": "setuptools_isolated_build_optional_in_active_venv",
             "pip_check": "PASS" if pip.returncode == 0 else "FAIL",
             "pip_check_output": (pip.stdout + pip.stderr)[-3000:],
             "python_vulnerability_scan": "NOT_RUN",
@@ -106,6 +126,8 @@ def main():
             print("TRIVY_" + level + "=" + str(findings[level]))
         for cve in sorted(TARGET):
             print(cve + "=" + ("REPORTED" if cve in tracked else "NOT_REPORTED_NOT_CLEARED"))
+        for name in REQUIRED_RUNTIME + OPTIONAL_BUILD:
+            print("PYTHON_DEPENDENCY_" + name.upper() + "=" + installed[name])
         print("PYTHON_PIP_CHECK=" + data["pip_check"])
         print("DEPENDENCY_VULNERABILITY_AUDIT=NOT_RUN")
         print("CONTAINER_RELEASE=BLOCKED")
@@ -130,6 +152,8 @@ def main():
             reason = "pip_check_timed_out"
         elif isinstance(error, json.JSONDecodeError):
             reason = "invalid_trivy_json"
+        elif cause.startswith("missing_runtime_dependency:"):
+            reason = "required_python_dependency_not_installed"
         elif cause in known:
             reason = cause
         elif isinstance(error, OSError):
@@ -138,6 +162,8 @@ def main():
             reason = "unexpected_invalid_input"
         print("SECURITY_AUDIT_EVIDENCE=BLOCKED_INCOMPLETE_INPUT")
         print("SECURITY_AUDIT_REASON=" + reason)
+        if cause.startswith("missing_runtime_dependency:"):
+            print("MISSING_RUNTIME_DEPENDENCIES=" + cause.split(":", 1)[1])
         print("TRIVY_REPORT_INPUT=" + str(args.trivy_report))
         print("CONTAINER_RELEASE=BLOCKED")
         return 2
