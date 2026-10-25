@@ -39,7 +39,10 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "tests/test_keycloak_container_extensions.py",
              "scripts/export_offline_briefcase.py",
              "tests/test_offline_briefcase.py",
-             "docs/OFFLINE_EVIDENCE_BRIEFCASE.md"]
+             "docs/OFFLINE_EVIDENCE_BRIEFCASE.md",
+             "scripts/offline_evidence_package_v2.py",
+             "tests/test_offline_evidence_package_v2.py",
+             "docs/OFFLINE_EVIDENCE_PACKAGES_V2.md"]
 RELEASE_GATES = {
     "independent_security_review": "PENDING",
     "hosted_ci": "NOT_VERIFIED",
@@ -81,7 +84,7 @@ def main():
         "readmes_found": readmes,
         "readme_editorial_flags": prose_flags,
         "readme_human_editorial_review": "REQUIRED",
-        "verified_local_tests": "OPERATOR_REPORTED_232_NOT_EXECUTED_BY_THIS_AUDIT",
+        "verified_local_tests": "OPERATOR_REPORTED_264_PRIOR_TO_V2_NOT_EXECUTED_BY_THIS_AUDIT",
         "release_gates": RELEASE_GATES,
         "release_decision": "BLOCKED",
     }
