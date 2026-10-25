@@ -48,7 +48,10 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "docs/OFFLINE_EVIDENCE_PACKAGES_V3.md",
              "scripts/offline_publisher_registry_v4.py",
              "tests/test_offline_publisher_registry_v4.py",
-             "docs/OFFLINE_EVIDENCE_PACKAGES_V4.md"]
+             "docs/OFFLINE_EVIDENCE_PACKAGES_V4.md",
+             "scripts/accept_offline_v4_rotation.py",
+             "tests/test_offline_v4_cli_rotation.py",
+             "docs/OFFLINE_V4_ROTATION_ACCEPTANCE.md"]
 RELEASE_GATES = {
     "independent_security_review": "PENDING",
     "hosted_ci": "NOT_VERIFIED",
