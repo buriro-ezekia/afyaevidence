@@ -12,7 +12,7 @@ if [[ "$ACTUAL" != "$EXPECTED" ]]; then
 fi
 echo 'CANDIDATE_IDENTITY=PASS'
 docker run --rm --network none --read-only --entrypoint /bin/bash "$IMAGE" -c '
-set -eu
+set -euo pipefail
 CA=/etc/pki/java/cacerts
 test -s "$CA" || { echo "JAVA_CA_STORE=FAIL"; exit 2; }
 test "$(readlink -f "$CA")" = /etc/pki/ca-trust/extracted/java/cacerts || {
@@ -28,6 +28,10 @@ fi
 echo "JAVA_KEYTOOL=FOUND"
 # Trust-store listing is read-only. The standard vendor default store
 # password is not an application credential.
+if ! "$KEYTOOL" -list -keystore "$CA" -storepass changeit >/dev/null 2>&1; then
+  echo "JAVA_KEYTOOL=BLOCKED_UNREADABLE_STORE"
+  exit 2
+fi
 if "$KEYTOOL" -list -keystore "$CA" -storepass changeit -v 2>/dev/null |
   grep -Eiq "Owner:.*emSign ECC Root CA - G3|Owner:.*eMudhra"; then
   echo "EMUDHRA_ROOT_MATCH=FOUND_REQUIRES_REVIEW"
