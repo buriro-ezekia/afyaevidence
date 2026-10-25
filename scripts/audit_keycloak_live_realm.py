@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 import ssl
 import sys
+from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHandler, ProxyHandler
 
@@ -20,6 +21,24 @@ from audit_keycloak_realm_exposure import summarise
 
 ORIGIN = "https://localhost:8443"
 REALM = "afya-local"
+
+STAGES = ("realm", "browser_executions", "required_actions", "components")
+
+class AdminAuditHTTPFailure(Exception):
+    """Sanitised Keycloak admin response without raw URL, body or credentials."""
+    def __init__(self, stage: str, status: int):
+        self.stage = stage
+        self.status = status
+        super().__init__("admin_request_rejected")
+
+def fetch_stage(opener, token: str, endpoint: str, stage: str):
+    if stage not in STAGES:
+        raise ValueError("invalid_audit_stage")
+    try:
+        return fetch(opener, token, endpoint)
+    except HTTPError as exc:
+        # HTTPError can carry a URL and body, neither of which is logged.
+        raise AdminAuditHTTPFailure(stage, int(exc.code)) from None
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self, request, fp, code, msg, headers, newurl):
@@ -58,15 +77,15 @@ def main():
     try:
         context = ssl.create_default_context(cafile=str(args.ca_cert))
         opener = build_opener(ProxyHandler({}), HTTPSHandler(context=context), NoRedirect())
-        realm = fetch(opener, token, "")
+        realm = fetch_stage(opener, token, "", "realm")
         if not isinstance(realm, dict):
             raise ValueError("invalid_realm_response")
         flow = realm.get("browserFlow")
         if not isinstance(flow, str) or not flow:
             raise ValueError("missing_browser_flow_alias")
-        executions = fetch(opener, token, "/authentication/flows/" + quote(flow, safe="") + "/executions")
-        actions = fetch(opener, token, "/authentication/required-actions")
-        components = fetch(opener, token, "/components")
+        executions = fetch_stage(opener, token, "/authentication/flows/" + quote(flow, safe="") + "/executions", "browser_executions")
+        actions = fetch_stage(opener, token, "/authentication/required-actions", "required_actions")
+        components = fetch_stage(opener, token, "/components", "components")
         summary = summarise(realm, executions, actions, components)
         args.report.parent.mkdir(parents=True, exist_ok=True)
         with args.report.open("x", encoding="utf-8") as f:
@@ -83,6 +102,23 @@ def main():
         print("CONTAINER_RELEASE=BLOCKED")
         print("REPORT=" + str(args.report))
         return 0
+    except AdminAuditHTTPFailure as exc:
+        print("KEYCLOAK_LIVE_REALM_AUDIT=BLOCKED_HTTPError")
+        print("FAILED_STAGE=" + exc.stage)
+        print("HTTP_STATUS=" + str(exc.status))
+        if exc.status == 401:
+            print("HTTP_DIAGNOSIS=TOKEN_EXPIRED_INVALID_OR_UNACCEPTED")
+        elif exc.status == 403:
+            print("HTTP_DIAGNOSIS=INSUFFICIENT_REALM_ADMIN_PERMISSIONS")
+        elif exc.status == 404:
+            print("HTTP_DIAGNOSIS=REALM_OR_ENDPOINT_NOT_FOUND")
+        elif exc.status in (301, 302, 303, 307, 308):
+            print("HTTP_DIAGNOSIS=UNEXPECTED_REDIRECT")
+        else:
+            print("HTTP_DIAGNOSIS=CHECK_KEYCLOAK_ADMIN_API")
+        print("REALM_EXPOSURE=NOT_VERIFIED")
+        print("CONTAINER_RELEASE=BLOCKED")
+        return 2
     except Exception as exc:
         # Do not print exception bodies; URLs, token fragments or server data may leak.
         print("KEYCLOAK_LIVE_REALM_AUDIT=BLOCKED_" + type(exc).__name__)
