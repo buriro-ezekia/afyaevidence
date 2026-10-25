@@ -15,7 +15,16 @@ ACTUAL="$(docker image inspect "$IMAGE" --format '{{.Id}}')" || {
 DIGESTS="$(docker image inspect "$IMAGE" --format '{{range .RepoDigests}}{{println .}}{{end}}')" || {
   echo 'CANDIDATE_REPOSITORY_DIGEST=BLOCKED'; exit 2;
 }
-if ! printf '%s\\n' "$DIGESTS" | grep -Fxq "$IMAGE"; then
+# Read Docker's output one digest per line. Exact Bash string comparison
+# avoids format-escaping errors and cannot accept a similar or shortened digest.
+PIN_MATCH=0
+while IFS= read -r digest; do
+  if [[ "$digest" == "$IMAGE" ]]; then
+    PIN_MATCH=1
+    break
+  fi
+done <<< "$DIGESTS"
+if [[ "$PIN_MATCH" -ne 1 ]]; then
   echo 'CANDIDATE_PINNED_REPOSITORY_DIGEST=FAIL'
   exit 2
 fi
@@ -26,7 +35,7 @@ elif [[ "$ACTUAL" == "$EXPECTED_CONFIG" ]]; then
   echo 'CANDIDATE_DOCKER_ID_KIND=CONFIGURATION'
 else
   echo 'CANDIDATE_IDENTITY=FAIL'
-  printf 'ACTUAL_DOCKER_IMAGE_ID=%s\\n' "$ACTUAL"
+  printf 'ACTUAL_DOCKER_IMAGE_ID=%s\n' "$ACTUAL"
   exit 2
 fi
 echo 'CANDIDATE_IDENTITY=PASS'
