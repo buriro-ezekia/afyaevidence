@@ -30,7 +30,9 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "docs/KEYCLOAK_RESIDUAL_SECURITY.md",
              "docs/KEYCLOAK_JAVA2D_APPLICABILITY.md",
              "scripts/audit_keycloak_java2d_reverse_refs.py",
-             "tests/test_keycloak_java2d_reverse_refs.py"]
+             "tests/test_keycloak_java2d_reverse_refs.py",
+             "scripts/audit_keycloak_realm_exposure.py",
+             "tests/test_keycloak_realm_exposure.py"]
 RELEASE_GATES = {
     "independent_security_review": "PENDING",
     "hosted_ci": "NOT_VERIFIED",
