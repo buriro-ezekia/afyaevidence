@@ -12,7 +12,7 @@ Local acceptance evidence was reported by the operator in October 2026:
 
 | Area | Evidence | Boundary |
 | --- | --- | --- |
-| Automated regression | 309 tests passed in 63.475 seconds, including offline v4 registry tests (operator report, 25 October 2026) | Local tests are not hosted CI or an independent security review |
+| Automated regression | 312 tests passed in 64.550 seconds, including the v4 real-CLI rotation tests (operator report, 25 October 2026) | Local tests are not hosted CI or an independent security review |
 | Synthetic evaluation | 15 reproducible snapshots; 16 evaluated scenarios; 32 scripted agent runs across standard and CPU profiles | Live Zetaris and Ollama were **not** invoked by those fixture checks |
 | Memory | H-MEM reference, persistence, provenance, scope, chronology and outbox retry checks passed | The reference embedding approach remains a prototype |
 | Human review | Verified individual reviewer identity and append-only review events | The historical local-operator decision remains an unverified legacy identity |
