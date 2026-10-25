@@ -1,0 +1,131 @@
+# GitHub Actions and security readiness — 25 October 2026
+
+## Hosted workflow diagnosis
+
+The draft PR #4 head before these repairs (`0dc624a`) had a failed
+pull-request-triggered GitHub Actions run **40184584707**. GitHub reported
+a failed `fixture-contract (3.13)` job in about two seconds, with
+`runner_id=0` and **no steps**. Python 3.12 and 3.14 matrix jobs were
+cancelled, also with no assigned runner or steps. Earlier runs had a
+similar pattern. GitHub job logs could not be retrieved from the
+connected API.
+
+These facts are consistent with a **pre-runner scheduling, account,
+Actions policy or infrastructure issue**. The precise cause is not
+proven. There is no evidence that a Python test or dependency
+installation ran in the failed job. Do **not** change application
+security policy or mark code tests failed solely from this metadata.
+
+### Workflow correction
+
+The `.github/workflows/probe.yml` matrix now uses `fail-fast: false`,
+so a genuine failure on one Python version does not automatically
+cancel its peers. A toolchain identity step reports Python, Node.js
+and pip versions *if the runner actually starts*, and `pip check`
+executes after the contract tests.
+
+The workflow retains explicit, SHA-pinned checkout/setup actions,
+Node 24 and Python 3.12/3.13/3.14. Checkout credentials are not persisted.
+The workflow deliberately uses synthetic fixture data and does not
+require a JDBC endpoint, live model, production Keycloak or a private
+key. Do not add real secrets to these PR checks.
+
+### GitHub-side action needed
+
+Inspect the [latest failed run](https://github.com/buriro-ezekia/afyaevidence/actions/runs/40184584707)
+through the GitHub interface, especially any organisation/repository
+billing, spending limit, Actions policy, runner availability or
+account-level restriction banner. If GitHub exposes the actual failure
+reason, preserve it verbatim in PR #4. Retry the workflow only once
+the external restriction is understood. If jobs still have zero
+assigned runners and zero steps, no local Python change can establish
+a hosted CI PASS.
+
+## Python dependency review
+
+The project core declares no runtime Python dependencies. The optional
+identity feature requires `PyJWT[crypto]>=2.13.0,<3` and
+`cryptography>=46.0.4`; packaging build uses
+`setuptools==84.0.0`. These are **version constraints**, not a
+fully reproducible, hash-locked, vulnerability-reviewed deployment
+dependency graph.
+
+The operator's recent full **312-test** suite and `pip check` passed.
+This establishes local compatibility, not freedom from known CVEs
+or equivalence of the three CI interpreter versions. The new
+`scripts/audit_security_evidence.py` records installed version
+identities, `pip check`, a supplied pre-existing Trivy report, the
+scan's SHA-256 and all critical/high findings. It does **not** query
+vulnerability databases, run a fresh Python vulnerability scan, update
+dependencies, or attest scanner DB freshness.
+
+## Keycloak pinned candidate — unresolved security gate
+
+Previously inspected Linux/AMD64 candidate:
+
+```text
+quay.io/keycloak/keycloak@sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc
+```
+
+Last operator Trivy candidate report: **1 critical, 1 high, 55 medium,
+35 low**. The development running container uses a distinct image ID.
+The candidate must not silently replace the running realm.
+
+Current Red Hat advisories were checked on 25 October 2026:
+
+- `CVE-2026-91403` — certificate-chain/trust issue. Red Hat notes that
+  nonportable RHEL OpenJDK RPMs consume the system `ca-certificates`
+  fix. Prior local fixed-package/symlink checks support this mitigation,
+  but independent root-certificate and chain review remains incomplete.
+  Source: https://access.redhat.com/security/cve/cve-2026-91403
+- `CVE-2026-91415` — OpenJDK Java 2D/font-processing issue. The
+  candidate's `java.desktop` module is present and its Keycloak path
+  reachability has not been independently excluded.
+  Source: https://access.redhat.com/security/cve/cve-2026-91415
+
+**Neither advisory is cleared by this work.** Do not remove relevant
+certificates, patch the running container opportunistically, downgrade
+scanner severities or disable security tests.
+
+### Read-only local audit
+
+Terminal 2, Node 24 not required for the following standalone script:
+
+```bash
+cd "$HOME/afyaevidence-keycloak-live"
+source "$HOME/.venvs/afyaevidence-identity/bin/activate"
+export PYTHONPATH="$PWD/src"
+
+python -m py_compile scripts/audit_security_evidence.py
+python -m unittest discover -s tests -p 'test_security_evidence.py' -v
+
+python scripts/audit_security_evidence.py \\
+  --trivy-report runtime/security/keycloak-candidate/candidate-trivy.json \\
+  --out runtime/security/keycloak-security-evidence-20261025.json
+```
+
+A new output filename is required if that destination already exists.
+The script fails closed for an absent/incomplete scanner inventory,
+unknown candidate manifest, unavailable installed dependencies or
+inconsistent pip environment. It cannot verify the scan is a fresh
+Docker rescan; its input is explicitly an existing report.
+
+For a **new** pinned candidate scan, rerun the existing documented
+read-only image checks and Trivy scan against the exact digest,
+preserving the old report for comparison. Vendor applicability evidence,
+a patched image, a security review and production deployment controls
+must all be evaluated independently.
+
+## Acceptance statuses
+
+| Gate | Status |
+| --- | --- |
+| Local synthetic regression (312 tests) | OPERATOR_REPORTED_PASS |
+| v4 CLI rotation/revocation | OPERATOR_REPORTED_PASS |
+| Hosted GitHub Actions | FAILED_BEFORE_STEPS_CAUSE_UNKNOWN |
+| Python runtime constraints | DOCUMENTED_NOT_HASH_LOCKED |
+| Python CVE scan | NOT_RUN |
+| Candidate Trivy inventory | HISTORICAL_FINDINGS_RECORDED |
+| OpenJDK CVE resolution | BLOCKED |
+| Independent security review | PENDING |
+| Production release | BLOCKED |
