@@ -53,6 +53,9 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "tests/test_offline_v4_cli_rotation.py",
              "docs/OFFLINE_V4_ROTATION_ACCEPTANCE.md",
              "docs/CI_AND_SECURITY_READINESS.md",
+             "docs/HACKATHON_SUBMISSION_READINESS.md",
+             "scripts/check_hackathon_demo.py",
+             "tests/test_hackathon_demo.py",
              "scripts/audit_security_evidence.py",
              "tests/test_security_evidence.py"]
 RELEASE_GATES = {
