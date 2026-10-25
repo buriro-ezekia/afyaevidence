@@ -22,6 +22,28 @@ Red Hat's CVE-2026-91403 statement says non-portable RHEL OpenJDK RPMs use the s
 
 Use `bash scripts/check_keycloak_java_exposure.sh` in the Keycloak worktree to inspect the pinned candidate with no network access, including a Java keytool name check. The script cannot provide definitive certificate-chain analysis; aliases and subject names vary. A negative text match **must not** be interpreted as proof of remediation. Vendor attestation or certificate-chain review is required for closure.
 
+## Candidate certificate-name inspection — 25 October 2026
+
+The operator subsequently ran the corrected pinned-image inspection. It
+confirmed the manifest/repository digest, Java trust-store symlink and
+successful `keytool -list -v`. The broad subject-name check returned
+`EMUDHRA_ROOT_MATCH=FOUND_REQUIRES_REVIEW`. **Do not classify this as a
+mitigation pass or as proof that the specific vulnerable root remains
+trusted.** A text match alone does not identify the certificate uniquely;
+inspect alias, entry type, full subject, SHA-256 fingerprint and chain.
+The script now emits those metadata fields for matching trust-store entries.
+This updated diagnostic is committed but has not yet been executed on the
+operator's host. A previous `NOT_FOUND` result was invalid because the
+read-only container could not create a Bash here-string temporary file.
+
+The same read-only probe reported `JAVA_DESKTOP_MODULE=PRESENT`, confirming
+that the headless RPM includes the Java desktop module. This is relevant to
+CVE-2026-91415 but cannot establish remote reachability.
+
+Both residual advisories remain **open**. Obtain vendor evidence and
+independent application-level review before considering a mitigation
+exception.
+
 ## OpenJDK 2D exposure — CVE-2026-91415
 
 Red Hat describes a flaw in OpenJDK 2D processing where crafted input reaching an exposed API may cause denial of service or limited data access/modification. The candidate continues to contain `java-21-openjdk-headless 1:21.0.12.1.1-1.2.el9`. Being headless does **not** prove `java.desktop` or Java 2D APIs are absent, nor does using Keycloak primarily for authentication prove those paths are unreachable.
