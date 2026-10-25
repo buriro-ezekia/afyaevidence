@@ -133,6 +133,28 @@ that isolated environment and cannot be inferred from these role checks.
 
 ## Status and gates
 
+### Updated operator evidence (23–25 October 2026)
+
+The original steps below were written before the local Keycloak realm was
+provisioned. Subsequent operator testing reported successful PKCE sign-in,
+signed-token verification and live introspection for the distinct viewer,
+reviewer and administrator accounts. In the disposable synthetic review
+database, viewer and administrator review submissions were denied, while
+the reviewer submitted one auditable decision. The operator also reported
+HTTP 503 while Keycloak was unavailable, HTTP 401 for a token after session
+logout, restoration of login after an outage, and 232 passing regression
+tests. These are local observations, not hosted CI or an independent audit.
+
+The Keycloak candidate image remains **blocked for production**:
+CVE-2026-91403 and CVE-2026-91415 are still reported in its OpenJDK RPM.
+The candidate contains the corrected CA certificate package and the Java
+trust store points to that system store; whether this provides complete
+mitigation for the former advisory requires independent review.
+See [Keycloak residual risk](KEYCLOAK_RESIDUAL_SECURITY.md) and
+[project completeness](PROJECT_COMPLETENESS_AUDIT.md).
+
+### Original runbook baseline (retained for traceability)
+
 - Earlier operator evidence: 231/231 automated tests, LIVE_SYSTEMD=PASS,
   supervised scripted synthetic job FINALISED.
 - GitHub PR #3: draft/unmerged, Codex review blocked by usage limits.
