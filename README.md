@@ -66,6 +66,21 @@ demonstration. It is not a substitute for online identity verification or
 human review. The output is a read-only copy and does not grant clinical
 authority, new data access or an offline approval mechanism.
 
+### Portable evidence packages v2
+
+The [v2 offline evidence package](docs/OFFLINE_EVIDENCE_PACKAGES_V2.md)
+bundles a synthetic read-only briefing, a deliberately restricted evidence
+extract and a SHA-256 manifest in one locally stored ZIP. The verifier checks
+contents and reports whether its stated review-by time has passed. The offline
+HTML continues to warn that a disconnected copy may now be stale.
+
+The package is **unsigned**, so hashes do not establish the publisher's
+identity without a separately trusted expected package hash. It does not
+cache authentication, collect new Zetaris data, submit offline review
+decisions or synchronise changes. This is an offline-read demonstration
+rather than a production offline-first system. Browser reopening and the
+latest v2 regression tests require operator acceptance.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
