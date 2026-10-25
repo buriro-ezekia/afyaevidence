@@ -9,7 +9,7 @@ from pathlib import Path
 import ssl
 import sys
 from urllib.parse import quote
-from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHandler
+from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHandler, ProxyHandler
 
 # Make the companion read-only summariser discoverable both when run as a
 # script and when unittest loads this file directly via importlib.
@@ -57,7 +57,7 @@ def main():
         return 2
     try:
         context = ssl.create_default_context(cafile=str(args.ca_cert))
-        opener = build_opener(HTTPSHandler(context=context), NoRedirect())
+        opener = build_opener(ProxyHandler({}), HTTPSHandler(context=context), NoRedirect())
         realm = fetch(opener, token, "")
         if not isinstance(realm, dict):
             raise ValueError("invalid_realm_response")
