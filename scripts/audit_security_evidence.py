@@ -12,7 +12,6 @@ from hashlib import sha256
 import importlib.metadata as metadata
 import json
 from pathlib import Path
-import re
 import subprocess
 import sys
 
@@ -62,8 +61,11 @@ def main():
     try:
         if args.image_manifest != EXPECTED_MANIFEST:
             raise ValueError("unexpected_candidate_image")
-        if not args.trivy_report.is_file() or args.trivy_report.stat().st_size > MAX_REPORT:
-            raise ValueError("missing_or_large_scan")
+        if not args.trivy_report.is_file():
+            raise ValueError("trivy_report_not_found")
+        size = args.trivy_report.stat().st_size
+        if size == 0 or size > MAX_REPORT:
+            raise ValueError("invalid_trivy_report_size")
         blob = args.trivy_report.read_bytes()
         packages, findings, tracked = analyse(json.loads(blob))
         required = {"PyJWT", "cryptography", "setuptools"}
@@ -111,8 +113,32 @@ def main():
         print("SECURITY_AUDIT_OUTPUT=" + str(args.out))
         return 0 if pip.returncode == 0 else 2
     except (OSError, ValueError, TypeError, KeyError, json.JSONDecodeError,
-            metadata.PackageNotFoundError, subprocess.TimeoutExpired):
+            metadata.PackageNotFoundError, subprocess.TimeoutExpired) as error:
+        # Report only a closed vocabulary of non-sensitive diagnostic codes.
+        # Never print environment variables, paths to private keys or
+        # arbitrary exception messages from third-party libraries.
+        known = {
+            "unexpected_candidate_image", "trivy_report_not_found",
+            "invalid_trivy_report_size", "invalid_trivy_report",
+            "missing_package_inventory", "invalid_trivy_section",
+            "invalid_vulnerability",
+        }
+        cause = str(error)
+        if isinstance(error, metadata.PackageNotFoundError):
+            reason = "required_python_dependency_not_installed"
+        elif isinstance(error, subprocess.TimeoutExpired):
+            reason = "pip_check_timed_out"
+        elif isinstance(error, json.JSONDecodeError):
+            reason = "invalid_trivy_json"
+        elif cause in known:
+            reason = cause
+        elif isinstance(error, OSError):
+            reason = "trivy_or_output_io_failure"
+        else:
+            reason = "unexpected_invalid_input"
         print("SECURITY_AUDIT_EVIDENCE=BLOCKED_INCOMPLETE_INPUT")
+        print("SECURITY_AUDIT_REASON=" + reason)
+        print("TRIVY_REPORT_INPUT=" + str(args.trivy_report))
         print("CONTAINER_RELEASE=BLOCKED")
         return 2
 
