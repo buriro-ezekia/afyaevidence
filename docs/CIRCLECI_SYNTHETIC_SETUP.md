@@ -58,3 +58,13 @@ regression evidence, not an independent security assessment or a
 substitute for live integration tests. Keycloak CVE-2026-91403 and
 CVE-2026-91415, publisher trust governance, dedicated deployment
 controls and production release remain unresolved.
+
+## First observed hosted acceptance — 25 October 2026
+
+The operator shared CircleCI pipeline **#1** workflow `synthetic-ci`,
+commit `391237a` and branch `work/keycloak-live-acceptance` marked
+**Success**. All three Python matrix jobs 3.12, 3.13 and 3.14 were
+green (workflow duration 1m 20s). This proves an independent hosted
+run without GitHub Actions. The screenshot does not show per-step
+unittest counts, so the 319-test local baseline remains separate.
+The latest GitHub branch head should be tested again after new commits.
