@@ -27,7 +27,8 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "docs/KEYCLOAK_HTTP_ROLE_ACCEPTANCE.md",
              "docs/KEYCLOAK_AUTHENTICATED_OUTAGE_TEST.md",
              "docs/KEYCLOAK_SESSION_REVOCATION_TEST.md",
-             "docs/KEYCLOAK_RESIDUAL_SECURITY.md"]
+             "docs/KEYCLOAK_RESIDUAL_SECURITY.md",
+             "docs/KEYCLOAK_JAVA2D_APPLICABILITY.md"]
 RELEASE_GATES = {
     "independent_security_review": "PENDING",
     "hosted_ci": "NOT_VERIFIED",
