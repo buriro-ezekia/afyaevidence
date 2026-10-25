@@ -107,7 +107,7 @@ def acceptance(receipt):
                 contains=("TRUST_REGISTRY_CREATE=PASS", "REGISTRY_VERSION=2"))
 
         # A revoked key must be refused even if its old v3 signature is valid.
-        blocked_old = execute(V4, "verify", *common, "--registry", registry2,
+        execute(V4, "verify", *common, "--registry", registry2,
                               "--signature", signature1, expected=2,
                               contains=("OFFLINE_V4=BLOCKED_TRUST_OR_POLICY",))
         # The failed check pins the authenticated version-2 floor.
@@ -144,9 +144,9 @@ def acceptance(receipt):
         print("V4_NEW_PUBLISHER_SIGNATURE=PASS")
         print("V4_REGISTRY_ROLLBACK=BLOCKED_AS_EXPECTED")
         print("V4_OLD_KEY_REVOCATION_FLOOR=PASS")
-        print("V4_DISPOSABLE_KEYS=REMOVED_AFTER_EXIT")
         print("V4_OFFLINE_REVIEW_SUBMISSION=DISABLED")
         print("PRODUCTION_RELEASE=BLOCKED")
+    print("V4_DISPOSABLE_KEYS=REMOVED_AFTER_EXIT")
     return 0
 
 
