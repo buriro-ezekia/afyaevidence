@@ -5,6 +5,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from urllib.error import HTTPError
+from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts/audit_keycloak_live_realm.py"
 SPEC = importlib.util.spec_from_file_location("keycloak_live_audit", SCRIPT)
@@ -57,6 +59,37 @@ class LiveRealmAuditTests(unittest.TestCase):
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("--ca-cert", result.stdout)
             self.assertIn("--report", result.stdout)
+
+    def test_unauthorised_http_status_has_safe_stage(self):
+        class RejectingOpener:
+            def open(self, request, timeout=10):
+                raise HTTPError(request.full_url, 401, "private server text",
+                                {"X-Internal": "private"}, None)
+        with self.assertRaises(MOD.AdminAuditHTTPFailure) as caught:
+            MOD.fetch_stage(RejectingOpener(), "very-private-admin-token",
+                            "", "realm")
+        self.assertEqual(caught.exception.status, 401)
+        self.assertEqual(caught.exception.stage, "realm")
+        self.assertNotIn("very-private-admin-token", str(caught.exception))
+        self.assertNotIn("private server text", str(caught.exception))
+
+    def test_forbidden_components_identifies_stage(self):
+        class RejectingOpener:
+            def open(self, request, timeout=10):
+                raise HTTPError(request.full_url, 403, "private admin data", {}, None)
+        with self.assertRaises(MOD.AdminAuditHTTPFailure) as caught:
+            MOD.fetch_stage(RejectingOpener(), "private-token",
+                            "/components", "components")
+        self.assertEqual((caught.exception.stage, caught.exception.status),
+                         ("components", 403))
+        self.assertEqual(str(caught.exception), "admin_request_rejected")
+
+    def test_invalid_audit_stage_rejected_before_request(self):
+        class NoRequestOpener:
+            def open(self, *args, **kwargs):
+                self.fail("request must not occur")
+        with self.assertRaises(ValueError):
+            MOD.fetch_stage(NoRequestOpener(), "token", "/components", "other")
 
     def test_no_authentication_provided_by_script(self):
         self.assertEqual(MOD.ORIGIN, "https://localhost:8443")
