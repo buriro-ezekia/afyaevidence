@@ -23,12 +23,15 @@ def receipt():
             "review_status":"awaiting_human_review","semantic_review_required":True,
             "approval":None,"summary":"Synthetic increase <script>alert(1)</script>",
             "explanation":"insufficient_data",
-            "numerical_statements":[{"text":"Comparison positive: 100"}],
+            "numerical_statements":[{"metric_ref":"mt_1","text":"comparison / all_available / canonical: positive_total = 100 count","evidence_ids":["ev_a"]}],
             "evidence_ids":["ev_a"],
             "limitations":["synthetic_data","no_causal_attribution"],
             "next_checks":["human_review"]},
         "evidence_bundle":{"data_mode":"fixture","snapshot_id":"ss_"+"a"*64,
-                           "evidence_records":[{"evidence_id":"ev_a","record":{"private":"secret"}}]}
+                           "evidence_records":[{"evidence_id":"ev_a","record":{"private":"secret"}}],
+                           "metrics":[{"metric_ref":"mt_1","period":"comparison",
+                           "cohort":"all_available","view":"canonical","name":"positive_total",
+                           "value":100,"unit":"count","evidence_ids":["ev_a"]}]}
     }
 
 class OfflineBriefcaseTests(unittest.TestCase):
@@ -52,6 +55,13 @@ class OfflineBriefcaseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 MOD.render(altered,"c"*64)
         doc["candidate_brief"]["approval"]="accept"
+        with self.assertRaises(ValueError):
+            MOD.render(doc,"c"*64)
+
+    def test_numerical_statement_tampering_is_rejected(self):
+        doc=receipt()
+        doc["candidate_brief"]["numerical_statements"][0]["text"] = (
+            "comparison / all_available / canonical: positive_total = 999 count")
         with self.assertRaises(ValueError):
             MOD.render(doc,"c"*64)
 
