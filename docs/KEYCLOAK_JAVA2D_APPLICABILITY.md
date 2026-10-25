@@ -101,6 +101,49 @@ font-rendering operation is present in a reachable API. Review the
 individual matched classes and any installed extension JARs before making
 an applicability judgement. Preserve the image and realm in place.
 
+## Per-library inventory triage — 25 October 2026
+
+The operator inspected all **69 matching classes** from the complete static
+inventory. They occur in **11 JARs**, all under `main`, with no matches
+reported under application/provider sections. This is not proof that those
+sections contain no extensions, and it is not a full call graph.
+
+| JAR / functional area | Matching classes | Priority / interpretation |
+| --- | ---: | --- |
+| `com.google.zxing.javase-3.4.0.jar` | 6 | **High:** includes `MatrixToImageWriter`, directly used by OTP QR-code generation |
+| `org.locationtech.jts.jts-core-1.19.0.jar` | 19 | **High:** contains `FontGlyphReader`, the **sole `JAVA_FONT`** match |
+| `com.sun.xml.messaging.saaj.saaj-impl-2.0.1.jar` | 3 | SOAP GIF/JPEG image handling; untrusted input path unverified |
+| `org.eclipse.angus.angus-mail-2.0.5.jar` | 2 | Mail GIF/JPEG content handling; reachability unverified |
+| `org.glassfish.jaxb.jaxb-runtime-4.0.9.jar` | 4 | Data binding and image conversion; reachability unverified |
+| `io.quarkus.quarkus-core-3.40.1.jar` | 5 | Runtime/native-image substitution classes; not evidence of a reachable endpoint |
+| `org.jgroups.jgroups-5.5.5.Final.jar` | 20 | Mostly demonstration/graphical utility classes |
+| `org.jboss.narayana.jta.narayana-jta-7.3.4.Final.jar` | 6 | Transaction-monitor graphical utilities |
+| `net.java.dev.jna.jna-5.8.0.jar` | 2 | AWT references from native compatibility |
+| `com.h2database.h2-2.4.240.jar` | 1 | GUI console |
+| `org.postgresql.postgresql-42.7.13.jar` | 1 | AWT-compatible geometric object |
+
+**Evidence from dependency implementation:** ZXing's tagged `3.4.0`
+`MatrixToImageWriter` creates `java.awt.image.BufferedImage`, sets pixels
+and writes with `javax.imageio.ImageIO.write`. That demonstrates
+image processing, but no explicit font-glyph rendering in this method.
+JTS `1.19.0` `FontGlyphReader` provides APIs converting text in
+`java.awt.Font` into geometry; it is an installed font-processing
+facility, but **no Keycloak caller has been identified**. Neither result
+identifies the precise vulnerable OpenJDK method.
+
+The underlying vulnerability concerns OpenJDK 2D font rendering;
+installation of graphics APIs is a sufficient **investigation trigger**,
+not proof of an external exploit route. The narrow next analysis is to
+identify reverse references to `FontGlyphReader` and other known font
+APIs, inspect Keycloak's user-controllable endpoints and configuration,
+and obtain vendor-specific affected-method/patch evidence. Do not
+silence CVE-2026-91415 or downgrade it because most matches are
+utility/demo classes.
+
+Additional code/API references:
+- https://github.com/zxing/zxing/blob/zxing-3.4.0/javase/src/main/java/com/google/zxing/client/j2se/MatrixToImageWriter.java
+- https://javadoc.io/static/org.locationtech.jts/jts-core/1.19.0/org/locationtech/jts/awt/FontGlyphReader.html
+
 ## Release acceptance and targeted next checks
 
 1. Execute the static inventory on the *pinned candidate*. Identify which
