@@ -349,6 +349,32 @@ reachability. It requires an authorised admin token and running
 Keycloak. Do not claim these checks were performed until the operator
 supplies their results; no admin credentials should be shared.
 
+### Admin API HTTP failure diagnostics — 25 October 2026
+
+The operator received `KEYCLOAK_LIVE_REALM_AUDIT=BLOCKED_HTTPError`.
+The previous audit intentionally hid HTTP response details, but also
+concealed the safe status code and which read-only endpoint rejected the
+request. The updated script now reports `FAILED_STAGE`, `HTTP_STATUS`
+and a short diagnosis, while never printing the token, raw URL,
+response headers or body.
+
+- `401` means the bearer token was rejected or expired. An AfyaEvidence
+  application-role token is not a Keycloak realm administrator token.
+- `403` means the authenticated principal lacks permission for the
+  indicated Admin REST endpoint. Use an authorised Keycloak admin
+  identity; do not broaden viewer/reviewer permissions just to pass a test.
+- `404` means the selected realm, browser-flow reference or endpoint
+  must be verified. Avoid changing the realm until the request is
+  understood.
+- Other HTTP codes (including redirects) remain BLOCKED, not PASS.
+
+The failure does **not** establish anything about OTP enablement, themes,
+providers or CVE-2026-91415 reachability. The operator should fetch the
+updated branch and run the offline HTTP error tests, then rerun the
+audit with an appropriately authorised short-lived admin token. Keep
+tokens and raw realm responses private. This procedure does not require
+starting the AfyaEvidence review API.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
