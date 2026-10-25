@@ -157,3 +157,32 @@ separates the failed-before-steps GitHub Actions workflow from actual
 code-test outcomes, and provides a read-only audit of installed Python
 versions and the last pinned candidate Trivy report. **No new
 candidate rescan or production security clearance is claimed.**
+
+
+## Hackathon demonstration boundary — 25 October 2026
+
+A current independent hosted CircleCI synthetic matrix passed across
+Python 3.12–3.14, and local synthetic regression covered 319 tests.
+Neither success clears the pinned candidate's **1 critical and 1 high**
+OpenJDK findings. On 25 October 2026, Red Hat's advisory for
+`CVE-2026-91403` still identified RHEL 9 `java-21-openjdk` as
+**Under investigation**, describing reliance on the system
+`ca-certificates` store for non-portable RPMs. A corrected
+system CA package and matching root-subject observations support, but
+do not conclusively attest, mitigation for this image.
+
+Red Hat's `CVE-2026-91415` advisory still describes an affected
+OpenJDK 2D component. The presence of `java.desktop` and a Keycloak
+QR generation path do not establish exploitability, but neither
+establishes that the font-rendering call is unreachable.
+See:
+https://access.redhat.com/security/cve/cve-2026-91403 and
+https://access.redhat.com/security/cve/cve-2026-91415.
+
+**Hackathon scope:** It is acceptable to demonstrate a
+**local synthetic agent workflow** and read-only offline evidence,
+provided it is clearly described as experimental and no production
+Keycloak security/clinical clearance is claimed. Do not expose the
+Keycloak development instance publicly or replace its persistent
+realm volume. A fresh, verified patched image and independent
+security decision remain future requirements.
