@@ -51,10 +51,13 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "docs/OFFLINE_EVIDENCE_PACKAGES_V4.md",
              "scripts/accept_offline_v4_rotation.py",
              "tests/test_offline_v4_cli_rotation.py",
-             "docs/OFFLINE_V4_ROTATION_ACCEPTANCE.md"]
+             "docs/OFFLINE_V4_ROTATION_ACCEPTANCE.md",
+             "docs/CI_AND_SECURITY_READINESS.md",
+             "scripts/audit_security_evidence.py",
+             "tests/test_security_evidence.py"]
 RELEASE_GATES = {
     "independent_security_review": "PENDING",
-    "hosted_ci": "NOT_VERIFIED",
+    "hosted_ci": "FAILED_PRE_RUNNER_UNRESOLVED",
     "keycloak_container_security": "BLOCKED_BY_REPORTED_CVES",
     "deployment_tls": "NOT_VERIFIED",
     "dedicated_service_account": "NOT_VERIFIED",
