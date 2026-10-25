@@ -115,6 +115,17 @@ service. The v4 tests passed within the operator-reported 309-test local
 suite; an independently witnessed CLI registry rotation/revocation
 exercise and production release controls remain outstanding.
 
+### v4 rotation and revocation CLI acceptance
+
+The [v4 CLI acceptance runbook](docs/OFFLINE_V4_ROTATION_ACCEPTANCE.md)
+provides a disposable-key, end-to-end demonstration: v1 trust
+verification, publication of a successor key with old-key revocation,
+newly signed package verification and rejection of the old signature
+and registry rollback. It creates only synthetic temporary evidence
+and does not modify previously signed packages, reviews or Keycloak.
+The runner has its own regression tests and Python syntax preflight.
+Operator execution and production security clearance are distinct gates.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
