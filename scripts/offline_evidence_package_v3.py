@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import binascii
 from datetime import datetime, timezone, timedelta
 from hashlib import sha256
 import json
@@ -153,6 +154,8 @@ def verify(args, now=None):
     # or signature envelope. Directory entries are operator-provisioned.
     if not args.trust_dir.is_dir() or args.trust_dir.is_symlink():
         raise ValueError("missing_trust_store")
+    if args.trust_dir.stat().st_mode & 0o022:
+        raise ValueError("insecure_trust_store_permissions")
     public_path = args.trust_dir / (kid + ".pem")
     public = load_public(public_path)
     if key_id(public) != kid:
@@ -194,7 +197,7 @@ def main():
     try:
         return {"keygen": keygen, "sign": sign, "verify": verify}[args.command](args)
     except (OSError, ValueError, TypeError, KeyError, InvalidSignature, UnicodeError,
-            json.JSONDecodeError):
+            json.JSONDecodeError, binascii.Error):
         print("OFFLINE_PACKAGE_V3=BLOCKED_SIGNATURE_OR_TRUST")
         print("AUTHENTICITY=NOT_VERIFIED")
         return 2
