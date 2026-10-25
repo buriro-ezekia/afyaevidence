@@ -168,7 +168,7 @@ def validate_registry(envelope, root, now, *, freshness=True):
 
 
 @contextmanager
-def rollback_guard(state_dir, version, registry_sha):
+def rollback_guard(state_dir, version, registry_sha, revoked_now):
     if state_dir.is_symlink():
         raise ValueError("unsafe_state_dir")
     state_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
@@ -183,18 +183,27 @@ def rollback_guard(state_dir, version, registry_sha):
         state = state_dir / "last_registry.json"
         if state.is_symlink():
             raise ValueError("unsafe_registry_state")
+        previous_revoked = set()
         if state.exists():
             old = load_json(v3.safe_file(state, private=True))
-            if set(old) != {"version", "sha256"} or type(old["version"]) is not int:
+            if (set(old) != {"version", "sha256", "revoked_key_ids"} or
+                type(old["version"]) is not int or
+                not isinstance(old["revoked_key_ids"], list) or
+                any(not isinstance(k, str) or not HEX.fullmatch(k)
+                    for k in old["revoked_key_ids"])):
                 raise ValueError("invalid_rollback_state")
             if version < old["version"] or (version == old["version"] and registry_sha != old["sha256"]):
                 raise ValueError("registry_rollback_or_equivocation")
+            previous_revoked = set(old["revoked_key_ids"])
+        if not previous_revoked.issubset(revoked_now):
+            raise ValueError("revoked_publisher_reactivated")
         # Pin the authenticated registry floor before assessing a package.
         tmp = state_dir / ("new-registry-" + os.urandom(8).hex())
         try:
             with tmp.open("xb") as out:
                 os.chmod(tmp, 0o600)
-                out.write(canonical({"version": version, "sha256": registry_sha}))
+                out.write(canonical({"version": version, "sha256": registry_sha,
+                                     "revoked_key_ids": sorted(previous_revoked | revoked_now)}))
             os.replace(tmp, state)
         finally:
             tmp.unlink(missing_ok=True)
@@ -227,7 +236,8 @@ def verify_package(args, now=None):
     if signed_at > now + timedelta(minutes=5):
         raise ValueError("future_signature")
     entries = [e for e in registry["publishers"] if e["key_id"] == key]
-    with rollback_guard(args.state_dir, registry["version"], expected_hash):
+    revoked = {e["key_id"] for e in registry["publishers"] if e["status"] == "revoked"}
+    with rollback_guard(args.state_dir, registry["version"], expected_hash, revoked):
         if len(entries) != 1 or entries[0]["status"] != "active":
             raise ValueError("publisher_unknown_or_revoked")
         entry = entries[0]
