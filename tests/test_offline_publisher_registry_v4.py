@@ -173,6 +173,11 @@ class PublisherRegistryTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             V4.verify_package(self.verify_args,self.now+timedelta(hours=3))
 
+    def test_writable_root_anchor_is_rejected(self):
+        self.root_public.chmod(0o666)
+        with self.assertRaises(ValueError):
+            V4.verify_package(self.verify_args,self.now)
+
     def test_invalid_registry_signed_issuer_not_auto_trusted(self):
         doc=json.loads(self.registry.read_text())
         doc["root_key_id"]="f"*64
