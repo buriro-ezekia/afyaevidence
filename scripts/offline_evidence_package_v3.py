@@ -18,6 +18,7 @@ from pathlib import Path
 import re
 import stat
 import sys
+import zipfile
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
@@ -197,7 +198,7 @@ def main():
     try:
         return {"keygen": keygen, "sign": sign, "verify": verify}[args.command](args)
     except (OSError, ValueError, TypeError, KeyError, InvalidSignature, UnicodeError,
-            json.JSONDecodeError, binascii.Error):
+            json.JSONDecodeError, binascii.Error, zipfile.BadZipFile):
         print("OFFLINE_PACKAGE_V3=BLOCKED_SIGNATURE_OR_TRUST")
         print("AUTHENTICITY=NOT_VERIFIED")
         return 2
