@@ -50,6 +50,22 @@ Fixture tests do not require live health data, Zetaris access or Ollama inferenc
 
 The local identity-review API binds to loopback only and checks a signed, audience-bound RS256 access token, roles and live introspection. It is a **resource server**, not an interactive production login service or a replacement for production TLS.
 
+## Offline capability: read-only evidence briefcases
+
+AfyaEvidence's deterministic synthetic analysis and scripted agent run locally.
+A new [offline evidence briefcase](docs/OFFLINE_EVIDENCE_BRIEFCASE.md) can export a
+**previously completed synthetic investigation** as a self-contained HTML page.
+It remains readable without a network connection, authentication service,
+Zetaris or local model at viewing time. It contains no source records, tokens,
+review forms or synchronisation capability. A normal Keycloak-authenticated
+browser session and any new live Zetaris investigation **are not offline-first**
+at this stage.
+
+This deliberately narrow slice is suited to a truthful low-connectivity
+demonstration. It is not a substitute for online identity verification or
+human review. The output is a read-only copy and does not grant clinical
+authority, new data access or an offline approval mechanism.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
