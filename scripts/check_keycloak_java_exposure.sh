@@ -39,7 +39,7 @@ else
   exit 2
 fi
 echo 'CANDIDATE_IDENTITY=PASS'
-docker run --rm --network none --read-only --entrypoint /bin/bash "$IMAGE" -c '
+docker run --rm --pull never --network none --read-only --entrypoint /bin/bash "$IMAGE" -c '
 set -euo pipefail
 CA=/etc/pki/java/cacerts
 test -s "$CA" || { echo "JAVA_CA_STORE=FAIL"; exit 2; }
