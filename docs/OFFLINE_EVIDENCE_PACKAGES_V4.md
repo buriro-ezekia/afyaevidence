@@ -163,3 +163,10 @@ safe offline review/approval, queued writes, synchronisation, production
 key management, online certificate-status checking or clinical
 authorisation. Existing Keycloak OpenJDK vulnerabilities, independent
 security review, hosted CI and deployment acceptance remain **BLOCKED**.
+
+## Real command-line rotation acceptance
+
+The [rotation acceptance guide](OFFLINE_V4_ROTATION_ACCEPTANCE.md)
+provides an isolated end-to-end subprocess runner which checks both
+successful replacement signing and refused revoked/rolled-back keys,
+with explicit Python syntax and unit-test preflight before operator use.
