@@ -12,7 +12,7 @@ Local acceptance evidence was reported by the operator in October 2026:
 
 | Area | Evidence | Boundary |
 | --- | --- | --- |
-| Automated regression | 264 tests passed on the Keycloak integration branch (operator report, 25 October 2026) | Tests are not an independent security review |
+| Automated regression | 309 tests passed in 63.475 seconds, including offline v4 registry tests (operator report, 25 October 2026) | Local tests are not hosted CI or an independent security review |
 | Synthetic evaluation | 15 reproducible snapshots; 16 evaluated scenarios; 32 scripted agent runs across standard and CPU profiles | Live Zetaris and Ollama were **not** invoked by those fixture checks |
 | Memory | H-MEM reference, persistence, provenance, scope, chronology and outbox retry checks passed | The reference embedding approach remains a prototype |
 | Human review | Verified individual reviewer identity and append-only review events | The historical local-operator decision remains an unverified legacy identity |
@@ -111,7 +111,9 @@ An offline verifier knows revocations **only as of the last registry
 it has received**. Recipients still require a trusted clock, a
 protected registry state and a separately authenticated root public
 key. This developer implementation is not a production revocation
-service; its tests and local acceptance are pending.
+service. The v4 tests passed within the operator-reported 309-test local
+suite; an independently witnessed CLI registry rotation/revocation
+exercise and production release controls remain outstanding.
 
 ## Investigation contract
 
