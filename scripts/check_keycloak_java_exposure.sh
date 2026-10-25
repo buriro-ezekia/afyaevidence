@@ -77,20 +77,7 @@ if command -v java >/dev/null 2>&1; then
     echo "JAVA_MODULE_LIST=BLOCKED"
     exit 2
   fi
-  if [[ "$MODULE_LIST" =~ (^|
-    echo "JAVA_DESKTOP_MODULE=PRESENT"
-  else
-    echo "JAVA_DESKTOP_MODULE=NOT_LISTED"
-  fi
-else
-  echo "JAVA_RUNTIME=BLOCKED_UNAVAILABLE"
-  exit 2
-fi
-echo "CVE_2026_91403=REQUIRES_VENDOR_REVIEW"
-echo "CVE_2026_91415=REQUIRES_EXPOSURE_AND_VENDOR_REVIEW"
-echo "CONTAINER_RELEASE=BLOCKED"
-'
-\n')java[.]desktop@ ]]; then
+  if [[ "$MODULE_LIST" =~ java[.]desktop@ ]]; then
     echo "JAVA_DESKTOP_MODULE=PRESENT"
   else
     echo "JAVA_DESKTOP_MODULE=NOT_LISTED"
