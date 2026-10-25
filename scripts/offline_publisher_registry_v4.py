@@ -214,6 +214,9 @@ def verify_package(args, now=None):
     now = now or datetime.now(timezone.utc)
     if args.registry.stat().st_size > MAX_REGISTRY:
         raise ValueError("registry_too_large")
+    if (args.root_public.parent.stat().st_mode & 0o022 or
+            args.root_public.stat().st_mode & 0o022):
+        raise ValueError("insecure_root_trust_permissions")
     root = v3.load_public(args.root_public)
     registry_blob = v3.safe_file(args.registry)
     registry = validate_registry(load_json(registry_blob), root, now)
