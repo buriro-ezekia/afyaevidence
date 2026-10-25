@@ -438,6 +438,45 @@ audit and independently reviewed method-level vendor analysis remain
 outstanding. Therefore `APPLICATION_REACHABILITY=NOT_VERIFIED`,
 `CVE_2026_91415=OPEN` and `CONTAINER_RELEASE=BLOCKED` remain correct.
 
+### Existing-container extension inventory verified — 25 October 2026
+
+The operator inspected the original, preserved local
+`afyaevidence-keycloak-local` container. Its existing ignored report
+was readable and a separate, newly timestamped read-only audit
+independently returned `KEYCLOAK_EXTENSION_AUDIT=PASS`.
+Both reported:
+
+| Inventory field | Verified value |
+| --- | --- |
+| Provider JARs directly beneath the inspected provider directory (recursively) | **0** |
+| Subdirectories in `/opt/keycloak/themes` | **0** |
+| Files under `/opt/keycloak/themes` | **1** |
+| Realm data read | **No** |
+| Java 2D application reachability | **Not verified** |
+
+The new private report is
+`runtime/security/keycloak-extension-inventory-20261025T073703Z.json`.
+The older report was not overwritten, and neither the container nor its
+realm volume was changed.
+
+This evidence does **not** conflict with the previously reported **14**
+realm provider components. Those are Keycloak configuration components,
+not necessarily individually installed custom JARs. A lone top-level
+theme file with no theme subdirectories is plausible; the report
+intentionally excludes its filename and contents and therefore does
+not identify its function. Nor does the scan of two directories provide
+a comprehensive software bill of materials, customisation review or
+runtime code-reachability proof.
+
+**Security decision:** No custom extension JAR was found in the
+examined provider directory, reducing one suspected source of
+unreviewed code. An OTP action and browser-flow step remain present,
+while ZXing server-side image generation is source-traced. The exact
+OpenJDK vulnerable font-processing method and externally controlled
+call path are still unverified. Keep `CVE_2026_91415=OPEN` and
+`CONTAINER_RELEASE=BLOCKED` pending vendor remediation or an
+independently reviewed applicability decision.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
