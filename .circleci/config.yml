@@ -40,9 +40,6 @@ jobs:
           command: |
             set -euo pipefail
             python scripts/audit_project_completeness.py
-      - store_artifacts:
-          path: runtime
-          destination: verification-evidence
 
 workflows:
   synthetic-ci:
