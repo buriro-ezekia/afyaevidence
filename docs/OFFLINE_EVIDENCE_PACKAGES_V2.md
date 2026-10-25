@@ -96,6 +96,13 @@ Network to **Offline**, force a reload, confirm there are no external
 requests and confirm the investigation remains visibly **awaiting human
 review**. Do not claim a browser reload PASS until it has been observed.
 
+## Signed distribution follow-up
+
+The [v3 guide](OFFLINE_EVIDENCE_PACKAGES_V3.md) adds detached Ed25519
+publisher signatures with a recipient-managed trusted-key directory.
+It does not replace v2's structural and checksum verification, nor does
+it automatically trust public keys distributed with an unknown ZIP.
+
 ## Boundaries
 
 No raw patient records, live district extracts, browser credential
