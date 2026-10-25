@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+import base64
+import time
 import getpass
 import json
 from pathlib import Path
@@ -23,6 +25,33 @@ ORIGIN = "https://localhost:8443"
 REALM = "afya-local"
 
 STAGES = ("realm", "browser_executions", "required_actions", "components")
+
+def token_preflight(token: str, now: float | None = None):
+    """Inspect local JWT metadata only; never mistake decoding for validation."""
+    if token.lower().startswith("bearer ") or any(c.isspace() for c in token):
+        return "INVALID_PRESENTATION", "UNKNOWN", 0
+    try:
+        parts = token.split(".")
+        if len(parts) != 3 or not all(parts):
+            return "INVALID_FORMAT", "UNKNOWN", 0
+        payload = parts[1] + "=" * (-len(parts[1]) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload))
+        if not isinstance(data, dict):
+            return "INVALID_FORMAT", "UNKNOWN", 0
+        expiry = data.get("exp")
+        issuer = data.get("iss")
+        if (type(expiry) is not int or not isinstance(issuer, str) or
+                not issuer.startswith("https://localhost:8443/realms/")):
+            return "INVALID_CLAIMS", "UNKNOWN", 0
+        realm = issuer.rsplit("/", 1)[-1]
+        remaining = expiry - int(time.time() if now is None else now)
+        if remaining <= 0:
+            return "EXPIRED", realm, 0
+        return "UNVERIFIED_ACTIVE_CLAIM", realm, remaining
+    except (ValueError, IndexError, TypeError, UnicodeDecodeError):
+        return "INVALID_FORMAT", "UNKNOWN", 0
+
+
 
 class AdminAuditHTTPFailure(Exception):
     """Sanitised Keycloak admin response without raw URL, body or credentials."""
@@ -73,6 +102,16 @@ def main():
     token = getpass.getpass("Authorised Keycloak admin access token (hidden input): ").strip()
     if not token:
         print("KEYCLOAK_LIVE_REALM_AUDIT=BLOCKED_NO_TOKEN")
+        return 2
+    state, issuer_realm, remaining = token_preflight(token)
+    print("TOKEN_PREFLIGHT=" + state)
+    print("TOKEN_ISSUER_REALM=" + issuer_realm)
+    print("TOKEN_REMAINING_SECONDS=" + str(remaining))
+    print("TOKEN_SIGNATURE_VERIFIED=NO")
+    if state != "UNVERIFIED_ACTIVE_CLAIM":
+        print("KEYCLOAK_LIVE_REALM_AUDIT=BLOCKED_TOKEN_PREFLIGHT")
+        print("REALM_EXPOSURE=NOT_VERIFIED")
+        print("CONTAINER_RELEASE=BLOCKED")
         return 2
     try:
         context = ssl.create_default_context(cafile=str(args.ca_cert))
