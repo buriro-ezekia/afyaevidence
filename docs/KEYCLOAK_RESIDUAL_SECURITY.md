@@ -1,0 +1,51 @@
+# Keycloak container security — residual risk and decision record
+
+**Status (25 October 2026): not approved for production.** This record separates facts observed in local tests from scanner findings, vendor guidance and unresolved assumptions. It is not an independent penetration test or risk-acceptance signature.
+
+## Image identity and scope
+
+The running *development* Keycloak container still uses image configuration `sha256:79c623a22abacf3fe6c00a5fb30f5b7843d717b234033b80995891c06116d244` for `quay.io/keycloak/keycloak:26.8.1`. A separately downloaded pinned Linux/AMD64 candidate uses manifest `sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc` and configuration `sha256:b55801be6ce15109868bd056dc18d62d47106bfaad7ffbd1a5d804192ec98257`.
+
+The two configuration digests differ. The candidate has **not** replaced the running container or shared its realm data volume. The candidate was scanned using Trivy with Java analysis enabled after Docker Scout's Java DB download failed. A candidate scan eventually completed, reporting 1 critical, 1 high, 55 medium and 35 low findings, all 92 sourced to Red Hat. The following findings are material; their scanner status is not an independent exploitability conclusion.
+
+| Advisory | Previous local image | Pinned candidate | Decision |
+| --- | --- | --- | --- |
+| CVE-2026-114406 | Critical, `ca-certificates` with old package | No longer reported; fixed package `2026.2.92_v9.0.319-90.3.el9_8` installed | Candidate package-level remediation supported |
+| CVE-2026-91403 | Critical, `java-21-openjdk-headless` | Critical, under investigation, no OpenJDK fixed version reported | Mitigation hypothesis supported by Red Hat; independent confirmation needed |
+| CVE-2026-91415 | High, `java-21-openjdk-headless` | High, affected, no fixed version reported | Remains open; no verified exposure exclusion |
+
+## CA trust-store evidence and limitations
+
+The candidate links `/etc/pki/java/cacerts` to `/etc/pki/ca-trust/extracted/java/cacerts`; the system TLS bundle resolves to `/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem`. Both linked files exist and are nonempty. The candidate contains the Red Hat fixed version of `ca-certificates`.
+
+Red Hat's CVE-2026-91403 statement says non-portable RHEL OpenJDK RPMs use the system CA certificate store and that removing the affected root certificates is sufficient to address this particular flaw. These facts are **consistent with a mitigation** for this RHEL image. They do not establish that the installed trust contents lack every problematic eMudhra certificate, nor do they overrule the unresolved OpenJDK vulnerability record.
+
+Use `bash scripts/check_keycloak_java_exposure.sh` in the Keycloak worktree to inspect the pinned candidate with no network access, including a Java keytool name check. The script cannot provide definitive certificate-chain analysis; aliases and subject names vary. A negative text match **must not** be interpreted as proof of remediation. Vendor attestation or certificate-chain review is required for closure.
+
+## OpenJDK 2D exposure — CVE-2026-91415
+
+Red Hat describes a flaw in OpenJDK 2D processing where crafted input reaching an exposed API may cause denial of service or limited data access/modification. The candidate continues to contain `java-21-openjdk-headless 1:21.0.12.1.1-1.2.el9`. Being headless does **not** prove `java.desktop` or Java 2D APIs are absent, nor does using Keycloak primarily for authentication prove those paths are unreachable.
+
+The pinned image inspection reports whether the JDK lists the `java.desktop` module. This is an **availability indicator, not a reachability proof**. An independent review must inspect the precise vulnerable call sites and Keycloak's relevant HTTP, theme, image, extension and library paths. Do not declare `not affected` based only on lack of observed graphics processing.
+
+## Controls and outstanding evidence
+
+Local provider testing used loopback HTTPS with an explicitly trusted development certificate, three separate application-role accounts, short-lived signed tokens, mandatory online introspection, and a read-only authenticated-outage test. The operator observed HTTP 503 during provider unavailability and HTTP 401 after logout of a previously accepted token. This is **development acceptance**, not evidence of hardened public deployment.
+
+Required before any production risk decision:
+
+- Vendor security guidance and fixed-package/errata tracking for both OpenJDK advisories.
+- Independent assessment of the actual Java trust contents and 2D input reachability.
+- Rescan a patched, pinned image with full OS and Java package inventory; compare all critical/high findings, not only named CVEs.
+- Isolated candidate migration and rollback drill on a copy of the realm (never use the current live development volume as a trial).
+- Independent code/security review, dependency/OS/container policy checks, dedicated service account and TLS deployment checks.
+- Documented reviewer approval from an authorised security owner; no model-generated approval.
+
+**Decision:** `CONTAINER_SECURITY=BLOCKED`; `PRODUCTION_RELEASE=BLOCKED`; no clinical approval. PR #4 and predecessor PRs remain unmerged.
+
+## Primary references
+
+- Red Hat: https://access.redhat.com/security/cve/cve-2026-91403
+- Red Hat: https://access.redhat.com/security/cve/cve-2026-91415
+- Red Hat: https://access.redhat.com/security/cve/cve-2026-114406
+- Trivy: https://trivy.dev/docs/latest/guide/scanner/vulnerability/
