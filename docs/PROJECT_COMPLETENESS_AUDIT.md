@@ -17,7 +17,7 @@ AfyaEvidence is a working **synthetic evidence-review prototype**, with local ve
 | Identity | Three Keycloak roles passed PKCE signature, introspection and role checks; viewer/admin denied review, reviewer made one auditable synthetic disposition | Dedicated operational identity proofing and provider lifecycle at deployment |
 | Availability | An otherwise valid access token received HTTP 503 while provider offline; a logged-out session token received HTTP 401; recovery passed | Multi-host failover and production monitoring |
 | Managed worker | Real systemd containment and synthetic managed run reported PASS | Deployment service account, resource sizing, reboot and rollback drill |
-| Regression and packaging | 232 Python tests, fixture evaluation, H-MEM, isolated wheel PASS | Hosted CI, reproducible dependency lock, artifact signing/SBOM |
+| Regression and packaging | 244 Python tests, fixture evaluation, H-MEM and isolated wheel PASS (operator-reported, 25 October 2026) | Hosted CI, reproducible dependency lock, artifact signing/SBOM |
 | Python dependencies | Local pip 26.2.2, `pip check` clean, `pip-audit` 0 findings reported | Repeat on deployment lock/image |
 | Keycloak container | Candidate rescanned with OS and Java DB enabled | OpenJDK CVE-2026-91403 and CVE-2026-91415 remain reported |
 | Documentation | Root README rewritten; operator guidance linked and source-evidence bounds explicit | Editorial review of third-party upstream README intentionally deferred |
@@ -48,6 +48,25 @@ different digests. The candidate itself and its realm have not been changed.
 **Verification:** the corrected script and new mocked-Docker regression
 tests have been committed, but the operator has not yet run this latest
 revision. The certificate and OpenJDK 2D checks are still unverified.
+
+### Regression verification update — 25 October 2026
+
+The operator reported `Ran 244 tests in 54.111s; OK`, together with
+`IDENTITY_WORKER_TESTS=PASS`. The same verification reported 15 reproducible
+synthetic snapshots, 16 independent evaluations, 32 scripted agent
+executions (standard and CPU), all six H-MEM reference checks, and
+`RUNTIME_PACKAGE=PASS` with evaluator keys and source data excluded
+from the isolated wheel. The built wheel was 71,013 bytes with SHA-256
+`e9a87a7b3cd0dffc899a4c7c6bd03da334a198dc9d44c13e6372870055365809`.
+The operator's verification directory was
+`runtime/identity-verification-20261025T050214671866Z`.
+
+These are reproducible local test reports, **not** independently witnessed
+hosted CI or live Zetaris/Ollama/H-MEM integration for this command. The
+report explicitly states `LIVE_ZETARIS=NOT_RUN`,
+`LIVE_MODEL=NOT_RUN` and `LIVE_HMEM=NOT_RUN`. The most recent
+pinned-image trust-store and Java module inspection results have not yet
+been supplied, so that release gate remains incomplete.
 
 ### Engineering issues still requiring attention
 
