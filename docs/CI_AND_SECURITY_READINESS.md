@@ -178,6 +178,36 @@ security acceptance blocked until a fresh, pinned, complete scan is
 performed. Preserve prior reports, existing Docker/Keycloak state and
 all accepted review records.
 
+## Local dependency inventory blocker — 25 October 2026
+
+The operator confirmed that the existing candidate Trivy file
+`runtime/security/keycloak-candidate/candidate-trivy.json` is present,
+but the initial audit stopped with
+`SECURITY_AUDIT_REASON=required_python_dependency_not_installed`.
+The original audit required three installed distributions: `PyJWT`,
+`cryptography` and `setuptools`. However `setuptools==84.0.0`
+is specified under `[build-system]` in `pyproject.toml` and is
+installed in a separate isolated environment for a standard pip wheel
+build, not necessarily in the active venv.
+
+The revised read-only audit requires `PyJWT` and `cryptography` as
+identity runtime dependencies, records a missing `setuptools` as
+`NOT_INSTALLED_ISOLATED_BUILD_DEPENDENCY` rather than treating it as
+a runtime error, and reports the package versions. Missing required
+runtime dependencies continue to block the audit with their names
+listed. This change does not modify `pyproject.toml`, install
+packages, suppress CVEs or relax pip dependency checks.
+
+The operator also observed `Permission denied` when `find`
+traversed Trivy's private cache/`fanal` directories; both expected
+candidate JSON reports were nevertheless listed. These cache traversal
+messages are not evidence of Trivy scan corruption.
+
+After a syntax and focused regression check, rerun the audit with
+the candidate's existing JSON and a **new** output filename. Do not
+use the report for the separate running development container, and do
+not treat `SECURITY_AUDIT_EVIDENCE=PASS` as container clearance.
+
 ## Acceptance statuses
 
 | Gate | Status |
