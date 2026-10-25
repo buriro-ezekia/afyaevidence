@@ -97,6 +97,20 @@ public-health assessment. No authenticated offline review, live
 source refresh or synchronisation is introduced. Tests and signing
 acceptance on the operator's WSL machine are still required.
 
+### Publisher trust registry v4 (development slice)
+
+The [v4 registry guide](docs/OFFLINE_EVIDENCE_PACKAGES_V4.md)
+introduces a separately trusted Ed25519 root, signed publisher-key
+registries, key rotation, revocation, version/rollback checks and a
+maximum 72-hour offline trust age. It checks signed v3 synthetic
+packages and never grants offline approval or clinical authority.
+
+An offline verifier knows revocations **only as of the last registry
+it has received**. Recipients still require a trusted clock, a
+protected registry state and a separately authenticated root public
+key. This developer implementation is not a production revocation
+service; its tests and local acceptance are pending.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
