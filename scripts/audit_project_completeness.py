@@ -93,7 +93,7 @@ def main():
         "readmes_found": readmes,
         "readme_editorial_flags": prose_flags,
         "readme_human_editorial_review": "REQUIRED",
-        "verified_local_tests": "OPERATOR_REPORTED_309_AS_OF_20261025_NOT_EXECUTED_BY_THIS_AUDIT",
+        "verified_local_tests": "OPERATOR_REPORTED_312_AS_OF_20261025_NOT_EXECUTED_BY_THIS_AUDIT",
         "release_gates": RELEASE_GATES,
         "release_decision": "BLOCKED",
     }
