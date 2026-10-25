@@ -401,6 +401,43 @@ Retain Keycloak's short-lived tokens. Use a fresh authorised admin
 realm permissions solely to make the audit pass. All realm exposure
 findings remain `NOT_VERIFIED` until the read-only API succeeds.
 
+### Verified live realm configuration — 25 October 2026
+
+The operator successfully completed the read-only HTTPS Keycloak Admin REST audit
+against the existing `afya-local` realm with an authorised, short-lived
+master-realm admin token. The local token preflight reported
+`UNVERIFIED_ACTIVE_CLAIM`, issuer `master` and **25 seconds remaining**
+at the time of the check; cryptographic verification of that claim was
+explicitly **not** performed by the preflight. Crucially, the Admin REST
+requests themselves returned successfully and the audit reported
+`KEYCLOAK_LIVE_REALM_AUDIT=PASS`.
+
+Sanitised configuration observations:
+
+| Configuration fact | Observed value | Interpretation |
+| --- | --- | --- |
+| Enabled OTP required actions | 1 | An OTP-related required action is enabled; it is **not** a default action |
+| Default OTP required actions | 0 | OTP enrolment is not automatically required *by that action* |
+| OTP-related executions in selected browser flow | 1 | A configured OTP execution exists; its requirement and nested-subflow reachability were not included in the summary |
+| Login, account, admin and email theme overrides | `DEFAULT_OR_UNSPECIFIED` for all four | No explicit realm-level theme name was returned; built-in themes, client-specific settings and extensions are not independently excluded |
+| Provider components | 14 | Count of configured components, **not** an inventory of custom provider JARs or verified Java imaging call sites |
+
+The collected report is retained privately at
+`runtime/security/keycloak-live-realm-audit.json`.
+Only the sanitised results were shared. The inspection did not mutate
+authentication flows, permissions, themes, users or reviews.
+
+**Key security consequence:** The presence of an enabled OTP action and an
+OTP-related browser execution means the OTP/QR-code functionality remains
+a plausible application processing path. However, the supplied data do
+not prove that the OTP flow is required, that public/untrusted requests
+reach the path, or that the OpenJDK **font-rendering** function implicated
+in CVE-2026-91415 is invoked. The identified QR writer uses imaging,
+not an established font-rendering exploit call. The extension filesystem
+audit and independently reviewed method-level vendor analysis remain
+outstanding. Therefore `APPLICATION_REACHABILITY=NOT_VERIFIED`,
+`CVE_2026_91415=OPEN` and `CONTAINER_RELEASE=BLOCKED` remain correct.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
