@@ -3,15 +3,30 @@
 # This provides evidence, not a CVE fix or a production approval.
 set -Eeuo pipefail
 IMAGE='quay.io/keycloak/keycloak@sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc'
-EXPECTED='sha256:b55801be6ce15109868bd056dc18d62d47106bfaad7ffbd1a5d804192ec98257'
+PINNED_MANIFEST='sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc'
+EXPECTED_CONFIG='sha256:b55801be6ce15109868bd056dc18d62d47106bfaad7ffbd1a5d804192ec98257'
+# Docker's containerd image store may report a manifest digest in .Id,
+# whereas the classic store reports the config digest. Neither representation
+# alone should silently authorise an unpinned image. Check the *exact* pinned
+# repository digest as well as the recognised Docker image identifier.
 ACTUAL="$(docker image inspect "$IMAGE" --format '{{.Id}}')" || {
   echo 'CANDIDATE_IMAGE=BLOCKED'; exit 2;
 }
-if [[ "$ACTUAL" != "$EXPECTED" ]]; then
+DIGESTS="$(docker image inspect "$IMAGE" --format '{{range .RepoDigests}}{{println .}}{{end}}')" || {
+  echo 'CANDIDATE_REPOSITORY_DIGEST=BLOCKED'; exit 2;
+}
+if ! printf '%s\\n' "$DIGESTS" | grep -Fxq "$IMAGE"; then
+  echo 'CANDIDATE_PINNED_REPOSITORY_DIGEST=FAIL'
+  exit 2
+fi
+echo 'CANDIDATE_PINNED_REPOSITORY_DIGEST=PASS'
+if [[ "$ACTUAL" == "$PINNED_MANIFEST" ]]; then
+  echo 'CANDIDATE_DOCKER_ID_KIND=MANIFEST'
+elif [[ "$ACTUAL" == "$EXPECTED_CONFIG" ]]; then
+  echo 'CANDIDATE_DOCKER_ID_KIND=CONFIGURATION'
+else
   echo 'CANDIDATE_IDENTITY=FAIL'
-  printf 'ACTUAL_LOCAL_CONFIG_ID=%s\nEXPECTED_REMOTE_CONFIG_ID=%s\n' "$ACTUAL" "$EXPECTED"
-  echo 'PINNED_MANIFEST=sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc'
-  echo 'IDENTITY_ACTION=INSPECT_LOCAL_IMAGE_AND_REGISTRY_MANIFEST'
+  printf 'ACTUAL_DOCKER_IMAGE_ID=%s\\n' "$ACTUAL"
   exit 2
 fi
 echo 'CANDIDATE_IDENTITY=PASS'
