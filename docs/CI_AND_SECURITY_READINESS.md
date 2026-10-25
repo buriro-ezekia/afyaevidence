@@ -208,6 +208,30 @@ the candidate's existing JSON and a **new** output filename. Do not
 use the report for the separate running development container, and do
 not treat `SECURITY_AUDIT_EVIDENCE=PASS` as container clearance.
 
+## Operator acceptance — successful local security-evidence audit
+
+The operator subsequently reported `SECURITY_AUDIT_EVIDENCE=PASS` from
+the existing pinned-candidate Trivy JSON. The audit counted **562**
+package inventory entries and **92 vulnerabilities**: 1 critical,
+1 high, 55 medium, 35 low and 0 unknown. The two tracked findings
+`CVE-2026-91403` and `CVE-2026-91415` remain **REPORTED**.
+
+The observed Python environment was `PyJWT=2.15.1`,
+`cryptography=50.0.2`, and
+`setuptools=NOT_INSTALLED_ISOLATED_BUILD_DEPENDENCY`.
+`PYTHON_PIP_CHECK=PASS` confirmed dependency consistency; a Python
+vulnerability scan was explicitly `NOT_RUN`. The audit wrote
+`runtime/security/keycloak-security-evidence-v3.json`. The
+`CANDIDATE_MANIFEST` value was
+`sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc`,
+an expected candidate identity in the audit contract, **not a new
+Docker image identity attestation or fresh scan**.
+
+This closes the *local read-only evidence collection* gate only.
+`CONTAINER_RELEASE=BLOCKED` and `PRODUCTION_RELEASE=BLOCKED`
+remain explicit. The new security-audit focused test-suite result
+has not been supplied independently with this output.
+
 ## Acceptance statuses
 
 | Gate | Status |
