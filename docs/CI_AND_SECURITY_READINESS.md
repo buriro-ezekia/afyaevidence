@@ -136,6 +136,48 @@ preserving the old report for comparison. Vendor applicability evidence,
 a patched image, a security review and production deployment controls
 must all be evaluated independently.
 
+## Security audit diagnostic follow-up — 25 October 2026
+
+The operator ran the original security-audit command and received:
+
+```text
+SECURITY_AUDIT_EVIDENCE=BLOCKED_INCOMPLETE_INPUT
+CONTAINER_RELEASE=BLOCKED
+```
+
+The previous implementation grouped missing files, invalid Trivy JSON,
+incomplete package inventory, missing Python dependencies and I/O
+errors into a single message. The auditor now emits a constrained
+`SECURITY_AUDIT_REASON` code and the requested `TRIVY_REPORT_INPUT`,
+while preserving the failed status. Tests cover missing and malformed
+reports. This is **a diagnostic improvement, not evidence of a clean
+Trivy scan**.
+
+Before rescanning or renaming any evidence, locate the exact existing
+candidate report by filename under the ignored `runtime/security`
+directory:
+
+```bash
+find runtime/security -maxdepth 5 -type f \\
+  \\( -iname '*trivy*.json' -o -iname '*candidate*.json' \\) -print
+
+python -m py_compile scripts/audit_security_evidence.py tests/test_security_evidence.py
+python -m unittest discover -s tests -p 'test_security_evidence.py' -v
+```
+
+If a valid prior Trivy JSON report is found, run the audit with that
+**exact path**, using a fresh destination filename. Its provenance must
+still be independently matched to the pinned AMD64 candidate: the
+`--image-manifest` option is an operator-supplied assertion rather than
+an automatically checked image identity. Do not substitute the scan
+for the *different running development image*, or treat a missing
+report as zero vulnerabilities.
+
+If no report exists, report `TRIVY_CANDIDATE_REPORT=MISSING` and keep
+security acceptance blocked until a fresh, pinned, complete scan is
+performed. Preserve prior reports, existing Docker/Keycloak state and
+all accepted review records.
+
 ## Acceptance statuses
 
 | Gate | Status |
