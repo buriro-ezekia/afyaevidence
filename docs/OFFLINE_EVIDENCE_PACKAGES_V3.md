@@ -154,6 +154,28 @@ publisher identity validation on a different device; neither is claimed
 here. A trusted-key file installed locally does not by itself establish
 organisational identity, revocation currency or clinical correctness.
 
+## Focused regression acceptance — 25 October 2026
+
+The operator executed the v3 security regression suite successfully:
+**12 tests in 0.095 seconds, OK**. The reported tests exercised valid
+trusted-key verification, stale-but-signed package handling, modified
+ZIP rejection, signed-payload tampering, unknown or mismatched publisher
+keys, private-key permission enforcement, signature non-overwrite,
+publisher-key identity checks, a future signing time, writable trust
+directory rejection, public-key symlink rejection and malformed Base64.
+
+The valid package test reported both
+`OFFLINE_PACKAGE_SIGNATURE=PASS` and
+`OFFLINE_PACKAGE_INTEGRITY=PASS` with an explicit locally installed
+trusted key, followed by a separate `OFFLINE_FRESHNESS=STALE` outcome
+when the simulated clock exceeded the review-by time.
+
+This evidence is from the operator's local test run, not hosted CI,
+an independent penetration assessment or a separate recipient device.
+Temporary per-test public-key fingerprints are expected to differ.
+The earlier actual v3 package verification is recorded separately.
+**Release approval and online revocation assurance remain outstanding.**
+
 ## Revocation and security limitations
 
 An offline recipient cannot learn that a trusted signing key has been
