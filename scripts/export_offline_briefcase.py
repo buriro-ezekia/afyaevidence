@@ -54,9 +54,26 @@ def validate(document):
     allowed = {record.get("evidence_id") for record in available if isinstance(record, dict)}
     if not allowed or any(ref not in allowed for ref in brief["evidence_ids"]):
         raise ValueError("invalid_evidence_citation")
+    metrics = evidence.get("metrics")
+    if not isinstance(metrics, list):
+        raise ValueError("missing_metric_facts")
+    metric_index = {m.get("metric_ref"): m for m in metrics if isinstance(m, dict)}
+    if len(metric_index) != len(metrics):
+        raise ValueError("duplicate_metric_reference")
     for row in brief["numerical_statements"]:
         if not isinstance(row, dict) or not isinstance(row.get("text"), str):
             raise ValueError("invalid_metric_statement")
+        metric = metric_index.get(row.get("metric_ref"))
+        if not isinstance(metric, dict):
+            raise ValueError("unknown_metric_reference")
+        value = "unavailable" if metric.get("value") is None else str(metric["value"])
+        expected = (f"{metric['period']} / {metric['cohort']} / {metric['view']}: "
+                    f"{metric['name']} = {value} {metric['unit']}")
+        if row["text"] != expected:
+            raise ValueError("metric_statement_mismatch")
+        if (not isinstance(row.get("evidence_ids"), list) or
+                any(item not in allowed for item in row["evidence_ids"])):
+            raise ValueError("unsupported_metric_evidence")
     return brief, evidence
 
 def render(document, digest):
