@@ -41,6 +41,26 @@ the external restriction is understood. If jobs still have zero
 assigned runners and zero steps, no local Python change can establish
 a hosted CI PASS.
 
+## New matrix diagnostic after correction
+
+After setting `fail-fast: false`, GitHub recorded run
+**40185459313** for the amended integration branch on 25 October 2026.
+All three matrix jobs (`fixture-contract (3.12)`, `(3.13)`,
+`(3.14)`) returned `failure`; each had `runner_id=0`,
+`steps=[]`, and an approximately **two-second** run duration.
+This confirms the jobs no longer cancelled one another, but none
+started on a runner. The Python test suite, toolchain reporting and
+dependency checks **did not execute in hosted CI**. The exact
+GitHub-side restriction or infrastructure failure remains unknown.
+
+Run: https://github.com/buriro-ezekia/afyaevidence/actions/runs/40185459313
+
+Check repository **Settings → Actions → General**, relevant billing
+or usage limits and any workflow-run banner/error shown in the Actions
+UI. The operator should copy the first available GitHub-side error
+message without credentials. A workflow YAML or Python security
+relaxation is not justified by this pre-runner failure.
+
 ## Python dependency review
 
 The project core declares no runtime Python dependencies. The optional
