@@ -111,6 +111,23 @@ Red Hat describes a flaw in OpenJDK 2D processing where crafted input reaching a
 
 The pinned image inspection reports whether the JDK lists the `java.desktop` module. This is an **availability indicator, not a reachability proof**. An independent review must inspect the precise vulnerable call sites and Keycloak's relevant HTTP, theme, image, extension and library paths. Do not declare `not affected` based only on lack of observed graphics processing.
 
+## Keycloak 26.8.1 Java 2D application path — source review
+
+The tagged 26.8.1 implementation includes an OTP QR-code generation route:
+`TotpUtils.qrCode()` supplies a fixed 246×246 QR code request to
+`QRCodeUtils.encodeAsQRString()`, which uses ZXing's
+`MatrixToImageWriter.writeToStream(..., "png", ...)`.
+This is a concrete Keycloak server-side **graphics-generation** path, not
+proof that attacker-controlled **font rendering** reaches the affected
+OpenJDK vulnerability. The pinned image contains `java.desktop`, and the
+installed OpenJDK still reports CVE-2026-91415 as affected. The specific
+font API, upstream patch and untrusted-input reachability remain unverified.
+
+See [the focused applicability assessment](KEYCLOAK_JAVA2D_APPLICABILITY.md)
+and its optional offline pinned-image JAR reference inventory. Do not use
+module presence, JAR class references or functional OTP checks to declare
+the CVE non-exploitable. Production approval remains blocked.
+
 ## Controls and outstanding evidence
 
 Local provider testing used loopback HTTPS with an explicitly trusted development certificate, three separate application-role accounts, short-lived signed tokens, mandatory online introspection, and a read-only authenticated-outage test. The operator observed HTTP 503 during provider unavailability and HTTP 401 after logout of a previously accepted token. This is **development acceptance**, not evidence of hardened public deployment.
