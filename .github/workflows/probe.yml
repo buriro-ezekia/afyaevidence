@@ -2,7 +2,7 @@ name: Synthetic contracts and source-access probe
 
 on:
   push:
-    branches: [main, 'codex/**']
+    branches: [main, 'codex/**', 'work/**']
   pull_request:
   workflow_dispatch:
 
@@ -41,6 +41,10 @@ jobs:
         run: python scripts/verify_hmem.py
       - name: Check scripted bounded agent on all synthetic cases
         run: python scripts/check_agent.py
+      - name: Install optional identity dependencies for current test suite
+        run: python -m pip install '.[identity]'
+      - name: Audit source and documentation completeness
+        run: python scripts/audit_project_completeness.py
       - name: Build runtime package
         run: python -m pip wheel . --no-deps --wheel-dir dist
       - name: Exclude evaluator keys from runtime package
