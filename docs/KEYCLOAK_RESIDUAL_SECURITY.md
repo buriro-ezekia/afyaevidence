@@ -78,6 +78,33 @@ References:
 - https://seclists.org/oss-sec/2026/q4/233
 - https://repository.emsign.com/
 
+## Follow-up: 118 Java trust-anchor subjects reviewed — 25 October 2026
+
+The operator used an isolated, network-disabled, read-only pinned candidate
+to list certificate subjects in `/etc/pki/java/cacerts`. The complete command
+reported `TRUST_STORE_SUBJECTS=118` and
+`CERTIFICATE_CHAIN_SUBJECT_CHECK=PASS`. None of the subjects contained the
+tested names `emSign ECC Root CA - G3`, `emSign Root TLS CA - G3`,
+`AAA Certificate Services` or `Comodo AAA Services`. The earlier broad
+eMudhra match was the distinct trusted `emSign Root CA - G1` fingerprint
+recorded above.
+
+**Evidence-based assessment:** This supports Red Hat's documented system
+CA-store mitigation for the trust-related CVE-2026-91403 alongside the
+installed fixed `ca-certificates` package and verified Java CA symlink.
+Subject matching is not a definitive fingerprint- or chain-validation audit;
+it does not prove the absence of a renamed or cross-signed anchor, an
+application-specific trust store or an alternate certificate validation path.
+The operator explicitly reported
+`CERTIFICATE_CHAIN_TRUST_ASSESSMENT=INCOMPLETE`. Keep the scanner advisory
+visible and seek independent vendor/security review before an exception is
+authorised.
+
+This inspection does **not** address OpenJDK 2D vulnerability CVE-2026-91415:
+`java.desktop` is present and its reachable Keycloak application paths are
+not independently assessed. Both findings remain recorded and production
+release stays blocked.
+
 ## OpenJDK 2D exposure — CVE-2026-91415
 
 Red Hat describes a flaw in OpenJDK 2D processing where crafted input reaching an exposed API may cause denial of service or limited data access/modification. The candidate continues to contain `java-21-openjdk-headless 1:21.0.12.1.1-1.2.el9`. Being headless does **not** prove `java.desktop` or Java 2D APIs are absent, nor does using Keycloak primarily for authentication prove those paths are unreachable.
