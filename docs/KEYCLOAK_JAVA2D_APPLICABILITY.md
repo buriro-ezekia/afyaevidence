@@ -233,6 +233,71 @@ without exposing credentials or user data, and vendor disclosure of
 affected OpenJDK call sites or a supported patched build. Any
 risk exception requires independent security sign-off.
 
+## RHEL 9 vendor fix status and local realm configuration — 25 October 2026
+
+A fresh check of [Red Hat's CVE-2026-91415 database](https://access.redhat.com/security/cve/cve-2026-91415)
+identifies the Java 2D vulnerability as **Important**, CVSS v3
+**4.8**. The published affected-packages view lists OpenJDK builds as
+affected with no published erratum for the displayed entries. The
+candidate image's Trivy record continues to show RHEL 9
+`java-21-openjdk-headless 1:21.0.12.1.1-1.2.el9`, **HIGH /
+affected**, without a fixed version. A live RHEL package repository
+query or vendor-specific update confirmation has **not** been executed
+on the candidate; therefore this check does not prove that no future
+package update could exist.
+
+For CVE-2026-91403, Red Hat currently describes RHEL 9 OpenJDK as
+**under investigation** and says its non-portable RPMs consume the
+fixed system `ca-certificates` store. The candidate package/trust
+evidence already supports the mitigation hypothesis, not security
+sign-off. Preserve both advisories individually.
+
+### Realm configuration and extensions still requiring local evidence
+
+Created `scripts/audit_keycloak_realm_exposure.py`, which reads
+**local JSON exports**, not live Keycloak, and emits only sanitised
+counts/statuses for OTP required actions, browser-flow executions,
+selected theme presence and provider-component count. It strips
+usernames, IDs, credentials, realm names, component names, theme names
+and any other raw configuration from its output. Absent source inputs
+are **NOT_VERIFIED**, not silently assumed disabled. It does not
+modify the realm.
+
+Usage after an authorised administrator has saved JSON files in the
+ignored private `runtime/security/realm-input/` directory:
+
+```bash
+python scripts/audit_keycloak_realm_exposure.py \\
+  --realm runtime/security/realm-input/realm.json \\
+  --required-actions runtime/security/realm-input/required-actions.json \\
+  --executions runtime/security/realm-input/browser-executions.json \\
+  --components runtime/security/realm-input/components.json \\
+  --report runtime/security/keycloak-realm-exposure.json
+```
+
+Export only the specific realm settings, **never user lists or tokens**.
+The optional inputs must reflect the actual `afya-local` realm and its
+selected browser authentication flow. Collecting those files is an
+authorised operator action; do not commit or paste their contents.
+The script can run with only `--realm` and `--report`, but then
+prints that other categories are `NOT_VERIFIED`.
+
+Realm flow and theme configuration cannot independently prove font
+processing reachability. An enabled OTP action indicates a possible
+QR-code journey; it does not establish an externally reachable Java
+font-rendering exploit. A disabled OTP action would not clear installed
+OpenJDK vulnerability exposure through other endpoints or extensions.
+
+### Independent release decision
+
+A human security reviewer must evaluate exact vendor patch guidance,
+configured enabled flows, provider JARs, custom themes, library call
+paths and the specific OpenJDK font-rendering preconditions. In the
+absence of a supported fixed package or a fully evidenced
+non-applicability decision, **CVE-2026-91415 stays OPEN and production
+deployment remains BLOCKED**. Do not disable the project's authentication
+protections merely to avoid triggering image generation.
+
 ## Release acceptance and targeted next checks
 
 1. Execute the static inventory on the *pinned candidate*. Identify which
