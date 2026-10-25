@@ -137,6 +137,19 @@ remains failing and its external startup cause is not yet established.
 Python dependencies are not fully hash-locked or vulnerability-cleared.
 Keycloak CVE and production-security gates remain blocked.
 
+### Alternative hosted CI (CircleCI Free)
+
+The [CircleCI synthetic verification setup](docs/CIRCLECI_SYNTHETIC_SETUP.md)
+adds `.circleci/config.yml` on this draft branch with independent
+Python 3.12–3.14 jobs, a strict Node 24 preflight, optional identity
+dependencies, the full synthetic fixture verifier and completeness
+audit. It does not use GitHub Actions or production service credentials.
+The operator must still connect the GitHub repository to CircleCI and
+select the `work/keycloak-live-acceptance` branch. **No CircleCI
+hosted pass has been observed yet.** GitHub Actions remains affected
+by the separate account-billing restriction and production security
+remains blocked.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
