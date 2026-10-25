@@ -58,6 +58,34 @@ file. The previously observed 14 realm provider components are not
 custom JAR counts. The independent OpenJDK applicability and release
 security gates remain open.
 
+## Full verification acceptance — 25 October 2026
+
+The operator subsequently reran the integrated verification after the
+managed-worker permission-test correction, with the following results:
+
+- **309 regression tests in 63.475 seconds — OK**, no failures.
+- `IDENTITY_WORKER_TESTS=PASS`, including v4 publisher-registry regressions.
+- `SYNTHETIC_REPRODUCIBILITY=PASS`, **15 snapshots**.
+- `SYNTHETIC_EVALUATION=PASS`, **16 cases**.
+- Standard and CPU agent profiles both **PASS**; **32 fixture executions**.
+- H-MEM reference, persistence, provenance, scope isolation, chronology
+  and outbox retry all **PASS**.
+- `RUNTIME_PACKAGE=PASS`, isolated scripted profiles `standard,cpu`;
+  evaluator keys and source data **not included** in the wheel.
+- Python dependency audit: **No broken requirements found**.
+- Verification output folder:
+  `runtime/identity-verification-20261025T100155156005Z`
+- Built wheel SHA-256:
+  `416e05b79ab488ef5bffabdc0ceeef253689ae27177907069ead51c319ef0442`.
+
+These are **operator-reported local acceptance outcomes**, not a hosted
+CI success or independent security assurance. Live Zetaris, Ollama model
+and live H-MEM calls were **not run** in these fixture checks. The
+standalone v4 registry CLI rotation/revocation acceptance remains
+distinct from tests of that logic. Historical failed verification
+evidence is preserved. Production release and Keycloak CVE gates
+remain **BLOCKED**.
+
 ## Managed-worker permission test correction — 25 October 2026
 
 The operator's latest full regression produced **308 tests, one failure**
