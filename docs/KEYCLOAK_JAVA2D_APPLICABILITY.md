@@ -288,6 +288,38 @@ QR-code journey; it does not establish an externally reachable Java
 font-rendering exploit. A disabled OTP action would not clear installed
 OpenJDK vulnerability exposure through other endpoints or extensions.
 
+### Direct read-only admin API check (optional)
+
+The alternative `scripts/audit_keycloak_live_realm.py` queries **only**
+the local HTTPS Keycloak Admin REST API's realm configuration, selected
+browser-flow executions, required actions and provider components.
+It takes an **authorised administrator access token via hidden input**
+(no password grant, no token saved to disk), enforces the explicitly
+trusted local certificate, does not follow redirects and never writes
+raw provider/realm data. Only a sanitised local JSON summary is saved.
+
+Terminal 1 can remain unused by AfyaEvidence. If the Keycloak development
+container is stopped, start **that existing container only**, preserving
+its volume and configuration; do not create a new realm or reset users.
+
+```bash
+python scripts/audit_keycloak_live_realm.py \\
+  --ca-cert "$HOME/.local/state/afyaevidence-keycloak-local/tls/tls.crt" \\
+  --report runtime/security/keycloak-live-realm-audit.json
+```
+
+The script requires an authorised **admin API access token**, which
+must be obtained through an approved administrator session. Do not paste
+the token into chat, put it in Git, or copy the raw API payloads.
+A token for the AfyaEvidence viewer/reviewer roles is insufficient.
+
+The output will report OTP enablement, browser-flow execution counts,
+theme presence and provider-component counts, while keeping raw names
+and configuration private. **Neither enabled nor disabled OTP by itself
+proves CVE-2026-91415 reachability or non-applicability.** If the
+admin API cannot be accessed, the security evidence is explicitly
+`NOT_VERIFIED`, not invented.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
