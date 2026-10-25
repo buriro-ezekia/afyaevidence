@@ -101,6 +101,28 @@ class SignedPackagesTests(unittest.TestCase):
         with self.assertRaises((ValueError,OSError)):
             V3.verify(self.verify_args,self.at)
 
+    def test_world_writable_trust_directory_is_rejected(self):
+        V3.sign(self.sign_args,self.at)
+        self.trust.chmod(0o777)
+        with self.assertRaises(ValueError):
+            V3.verify(self.verify_args,self.at)
+
+    def test_public_key_symlink_is_rejected(self):
+        V3.sign(self.sign_args,self.at)
+        public = self.trust/(self.kid+".pem")
+        public.unlink()
+        public.symlink_to(self.public)
+        with self.assertRaises(ValueError):
+            V3.verify(self.verify_args,self.at)
+
+    def test_malformed_base64_signature_is_rejected(self):
+        V3.sign(self.sign_args,self.at)
+        doc=json.loads(self.sig.read_text())
+        doc["signature_b64"]="not-ASCII!-%%%="
+        self.sig.write_bytes(V3.canonical(doc))
+        with self.assertRaises(Exception):
+            V3.verify(self.verify_args,self.at)
+
     def test_future_signature_time_rejected(self):
         V3.sign(self.sign_args,self.at)
         with self.assertRaises(ValueError):
