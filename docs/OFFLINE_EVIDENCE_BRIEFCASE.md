@@ -74,7 +74,9 @@ to overwrite the output.
 ## Deliberate limitations and next slice
 
 **Supported:** read-only, disconnected access to a previously prepared
-synthetic report.
+synthetic report. The separate [v2 package guide](OFFLINE_EVIDENCE_PACKAGES_V2.md)
+adds a ZIP with SHA-256 file checks, an explicit review-by time and a
+restricted evidence extract; it does not add offline authenticated review.
 
 **Not supported by this slice:** offline Keycloak login or revocation checks,
 offline approval/rejection, real patient or live district data export,
