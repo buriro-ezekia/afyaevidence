@@ -32,6 +32,23 @@ AfyaEvidence is a working **synthetic evidence-review prototype**, with local ve
 6. The Docker development container's past exit code 255 is not root-caused; subsequent service recovery passed. Do not describe the cause as known.
 7. README inventory includes `bridges/hmem/upstream/README.md`, a **pinned upstream reference**. This is not an original project README. It is intentionally unchanged to preserve upstream provenance and the reference hash/integrity contract. The project-owned root README is in UK English. Upstream wording must not be silently edited to meet house style.
 
+### Candidate identity-check correction (25 October 2026)
+
+The first pinned-image inspection incorrectly compared the locally reported
+manifest digest against the registry configuration digest. An intermediate
+fix also escaped a Bash `printf` format twice, producing a literal
+`\\n` instead of a newline and falsely rejecting a matching repository
+digest. The operator captured both failures. The comparison now reads each
+repository digest as an exact Bash string, requires the immutable pinned
+repository reference and checks that Docker's reported image ID matches one
+of the independently recorded manifest/configuration digests. Regression
+tests cover the two valid ID representations and reject absent, malformed or
+different digests. The candidate itself and its realm have not been changed.
+
+**Verification:** the corrected script and new mocked-Docker regression
+tests have been committed, but the operator has not yet run this latest
+revision. The certificate and OpenJDK 2D checks are still unverified.
+
 ### Engineering issues still requiring attention
 
 - **Security:** CVE-2026-91403 is reported critical on the unchanged OpenJDK RPM, notwithstanding the system CA-store mitigation evidence; CVE-2026-91415 remains high/affected, with no fixed version supplied in the candidate Trivy report. Neither is silently waived.
