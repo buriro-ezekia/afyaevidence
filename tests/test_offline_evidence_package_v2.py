@@ -91,6 +91,21 @@ class OfflineEvidenceV2Tests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     MOD.inspect(p,None,now)
 
+    def test_symlink_member_is_rejected_even_with_expected_name(self):
+        now = datetime(2026, 10, 25, tzinfo=timezone.utc)
+        files = MOD.build(bytes_receipt(), now, 48)
+        with tempfile.TemporaryDirectory() as temp:
+            p = Path(temp) / "symlink.zip"
+            with zipfile.ZipFile(p, "w") as z:
+                for name in MOD.NAMES:
+                    member = zipfile.ZipInfo(name)
+                    if name == "evidence.json":
+                        member.create_system = 3
+                        member.external_attr = (0o120777 << 16)
+                    z.writestr(member, files[name])
+            with self.assertRaises(ValueError):
+                MOD.inspect(p, None, now)
+
     def test_wrong_out_of_band_package_hash_rejected(self):
         now = datetime(2026, 10, 25, tzinfo=timezone.utc)
         files = MOD.build(bytes_receipt(), now, 48)
