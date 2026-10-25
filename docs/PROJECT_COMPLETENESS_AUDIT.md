@@ -58,6 +58,29 @@ file. The previously observed 14 realm provider components are not
 custom JAR counts. The independent OpenJDK applicability and release
 security gates remain open.
 
+## Managed-worker permission test correction — 25 October 2026
+
+The operator's latest full regression produced **308 tests, one failure**
+in `test_managed_worker.ManagedWorkerTests.test_private_directory_required`.
+The test used `mkdir(mode=0o755)` and assumed the resulting directory
+was group/other accessible. Earlier development signing commands used
+`umask 077`; POSIX directory creation masks requested mode by the
+process umask, so the actual result can be `0700`. The
+`private_state()` production implementation already rejects
+group/other permissions and remains unchanged.
+
+The test now applies `chmod(0o755)`, asserts the actual mode is
+`0755`, verifies that `private_state()` raises `Blocked` and
+checks it did not silently change the directory permissions.
+A complementary test checks that an explicit `0700` directory
+is accepted. This removes the environment-sensitive false failure
+without relaxing the worker's security boundary.
+
+The corrected full suite **has not yet been rerun by the operator**;
+the historical failed run and existing verification logs must be
+retained. Production acceptance remains blocked independently of
+this test correction.
+
 ## Summary
 
 AfyaEvidence is a working **synthetic evidence-review prototype**, with local verification across source inspection, fixture generation, agent orchestration, H-MEM, authenticated review, isolated human dispositions and systemd-managed workers. **Production and clinical release are not authorised.**
