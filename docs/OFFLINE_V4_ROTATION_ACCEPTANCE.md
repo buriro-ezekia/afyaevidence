@@ -81,6 +81,37 @@ output.** The runner's syntax and CLI integration must be validated by
 the execution above. The script was inspected against the existing
 v2/v3/v4 command-line argument contracts prior to hand-off.
 
+## Operator-reported acceptance — 25 October 2026
+
+The standalone real-CLI acceptance runner has now completed successfully.
+The operator reported the following terminal outcomes:
+
+```text
+V4_CLI_ROTATION_ACCEPTANCE=PASS
+V4_INITIAL_PUBLISHER=PASS
+V4_REGISTRY_V2=PASS
+V4_REVOKED_OLD_KEY=BLOCKED_AS_EXPECTED
+V4_NEW_PUBLISHER_SIGNATURE=PASS
+V4_REGISTRY_ROLLBACK=BLOCKED_AS_EXPECTED
+V4_OLD_KEY_REVOCATION_FLOOR=PASS
+V4_OFFLINE_REVIEW_SUBMISSION=DISABLED
+PRODUCTION_RELEASE=BLOCKED
+V4_DISPOSABLE_KEYS=REMOVED_AFTER_EXIT
+```
+
+This establishes the operator's **local operational v4 rotation and
+revocation PASS** using the disposable, synthetic CLI workflow. The
+previous integrated regression milestone was 309 tests PASS; these
+new CLI acceptance tests were introduced after that historical run.
+Their focused test-output count, subsequent full regression and
+hosted CI acceptance should therefore be recorded separately rather
+than inferred from the standalone acceptance marker.
+
+The success does **not** prove independent publisher identity vetting,
+online revocation freshness, secure root-key custody, trusted-clock
+assurance, deployment hardening or clinical authorisation. Production
+release remains blocked.
+
 ## Limits
 
 The exercise uses a development trust root and synthetic reporting
