@@ -149,3 +149,11 @@ Required before any production risk decision:
 - Red Hat: https://access.redhat.com/security/cve/cve-2026-91415
 - Red Hat: https://access.redhat.com/security/cve/cve-2026-114406
 - Trivy: https://trivy.dev/docs/latest/guide/scanner/vulnerability/
+
+## Hosted CI and current security readiness audit — 25 October 2026
+
+The [CI and security readiness record](CI_AND_SECURITY_READINESS.md)
+separates the failed-before-steps GitHub Actions workflow from actual
+code-test outcomes, and provides a read-only audit of installed Python
+versions and the last pinned candidate Trivy report. **No new
+candidate rescan or production security clearance is claimed.**
