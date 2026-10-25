@@ -83,6 +83,24 @@ Unscanned oversized classes or unreadable JARs block a complete static
 inventory rather than being hidden. The operator must run this script on
 the exact candidate before its output can enter the evidence register.
 
+## Operator static-inventory result — 25 October 2026
+
+The operator executed the pinned candidate static inventory and reported
+`JAVA2D_STATIC_INVENTORY=PASS`. The scan examined **355 JAR archives**
+containing **69,885 Java class files** and found **69 class files** with
+Java AWT, ImageIO, font or Java 2D byte-string indicators. The local JSON
+report is `runtime/security/keycloak-java2d-static.json`, and remains
+outside Git. The report's per-JAR and per-class matching evidence has **not
+yet been reviewed**; source-level and runtime reachability analysis is
+therefore not complete.
+
+The tool itself reported `APPLICATION_REACHABILITY=NOT_VERIFIED`,
+`CVE_2026_91415=OPEN` and `CONTAINER_RELEASE=BLOCKED`.
+This is a **successful inventory**, not confirmation that the exact vulnerable
+font-rendering operation is present in a reachable API. Review the
+individual matched classes and any installed extension JARs before making
+an applicability judgement. Preserve the image and realm in place.
+
 ## Release acceptance and targeted next checks
 
 1. Execute the static inventory on the *pinned candidate*. Identify which
