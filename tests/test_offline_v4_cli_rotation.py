@@ -26,11 +26,12 @@ class OfflineV4CliAcceptanceTests(unittest.TestCase):
                 ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
 
     def test_cli_rotation_revocation_and_rollback(self):
-        namespace = {}
-        exec(compile(SAMPLE.read_text(encoding="utf-8"), str(SAMPLE), "exec"), namespace)
-        # The fixture module only defines static synthetic receipt facts.
-        receipt = namespace["receipt"]()
+        import importlib.util
         import json
+        spec = importlib.util.spec_from_file_location("offline_v4_test_receipt", SAMPLE)
+        fixture = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(fixture)
+        receipt = fixture.receipt()
         with tempfile.TemporaryDirectory(prefix="afya-v4-accept-test-") as temp:
             source = Path(temp) / "synthetic-receipt.json"
             source.write_text(json.dumps(receipt), encoding="utf-8")
