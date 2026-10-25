@@ -27,6 +27,22 @@ Ollama and H-MEM were explicitly NOT_RUN in this invocation, while
 hosted CI, independent container-security review and deployment approval
 remain outstanding. `PROJECT_RELEASE=BLOCKED`.
 
+## Live Keycloak realm evidence — 25 October 2026
+
+The operator completed the read-only Keycloak Admin REST configuration audit
+successfully: `KEYCLOAK_LIVE_REALM_AUDIT=PASS`. One OTP required
+action was enabled, none were default actions, and one OTP-related
+execution appeared in the selected browser flow. All four realm-level
+theme fields returned `DEFAULT_OR_UNSPECIFIED`; the realm registered
+14 provider components. This **closes the basic realm-configuration
+inspection gate**, but not the Keycloak extension filesystem inventory,
+nested-flow reachability, precise affected OpenJDK 2D method analysis or
+independent vulnerability assessment. The admin token was not shared or
+saved to Git, and the local report remains under ignored `runtime/`.
+
+`CVE_2026_91415=OPEN`, `CONTAINER_SECURITY=BLOCKED_BY_REPORTED_CVES`
+and `PROJECT_RELEASE=BLOCKED`.
+
 ## Summary
 
 AfyaEvidence is a working **synthetic evidence-review prototype**, with local verification across source inspection, fixture generation, agent orchestration, H-MEM, authenticated review, isolated human dispositions and systemd-managed workers. **Production and clinical release are not authorised.**
