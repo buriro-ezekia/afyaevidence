@@ -59,6 +59,28 @@ class SecurityEvidenceTests(unittest.TestCase):
             self.assertIn("SECURITY_AUDIT_REASON=invalid_trivy_json", result.stdout)
             self.assertFalse(output.exists())
 
+    def test_absent_isolated_build_setuptools_does_not_block(self):
+        from importlib.metadata import PackageNotFoundError
+        versions = {"PyJWT": "2.13.0", "cryptography": "46.0.4"}
+        def lookup(name):
+            if name not in versions:
+                raise PackageNotFoundError(name)
+            return versions[name]
+        installed, missing = MOD.dependency_inventory(lookup)
+        self.assertEqual(missing, [])
+        self.assertEqual(installed["setuptools"],
+                         "NOT_INSTALLED_ISOLATED_BUILD_DEPENDENCY")
+
+    def test_missing_runtime_dependency_remains_blocked(self):
+        from importlib.metadata import PackageNotFoundError
+        def lookup(name):
+            if name == "PyJWT":
+                raise PackageNotFoundError(name)
+            return "46.0.4"
+        installed, missing = MOD.dependency_inventory(lookup)
+        self.assertEqual(missing, ["PyJWT"])
+        self.assertEqual(installed["PyJWT"], "MISSING")
+
     def test_empty_advisories_do_not_imply_clearance(self):
         n, levels, tracked = MOD.analyse({
             "Results": [{"Packages": [{"Name": "other"}], "Vulnerabilities": []}]
