@@ -375,6 +375,32 @@ audit with an appropriately authorised short-lived admin token. Keep
 tokens and raw realm responses private. This procedure does not require
 starting the AfyaEvidence review API.
 
+### Repeated HTTP 401 and administrator token preflight — 25 October 2026
+
+The operator confirmed a working browser Admin Console request to
+`GET /admin/realms/afya-local` (**HTTP 200**) but the Python
+read-only audit repeatedly received **HTTP 401** at its initial
+`realm` stage. A previous privately decoded access token had
+`TOKEN_EXPIRED=True`, with issuer realm `master`. The browser's
+separate successful request does not establish that the **same**
+unexpired bearer credential was supplied to Python.
+
+The live audit now performs a **local, non-verifying token preflight**
+before any HTTPS request. It displays only whether the JWT is expired
+or malformed, the expected local issuer realm and remaining seconds.
+It does **not** print or persist token bytes or trust decoded JWT
+claims as verified identity; Keycloak still determines authentication
+by its Admin REST response. An expired token produces a clear
+`BLOCKED_TOKEN_PREFLIGHT` without an unnecessary HTTP call. A
+token with unexpired claimed `exp` may still be rejected due to
+signature, audience, revocation or administrative-session conditions.
+
+Retain Keycloak's short-lived tokens. Use a fresh authorised admin
+**access token**, not an ID/refresh token or the AfyaEvidence application
+`administrator` account. Do not extend token lifetime or expand
+realm permissions solely to make the audit pass. All realm exposure
+findings remain `NOT_VERIFIED` until the read-only API succeeds.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
