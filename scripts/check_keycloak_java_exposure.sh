@@ -67,35 +67,49 @@ if ! CERT_LIST="$("$KEYTOOL" -list -keystore "$CA" -storepass changeit -v 2>/dev
   exit 2
 fi
 echo "JAVA_CERTIFICATE_LIST=PASS"
-# A subject-name match can refer to an unrelated or already corrected
-# certificate. Emit metadata for independent fingerprint/chain verification.
-# awk reads a pipe; unlike Bash here-strings, it needs no writable /tmp.
-if ! command -v awk >/dev/null 2>&1; then
-  echo "CERTIFICATE_METADATA=BLOCKED_NO_AWK"
-  exit 2
+# Parse keytool output using Bash only; avoid awk and writable temporary files.
+MATCH_COUNT=0
+CERT_ALIAS=UNKNOWN
+CERT_ENTRY=UNKNOWN
+CERT_OWNER=UNKNOWN
+CERT_SHA=UNKNOWN
+CERT_STARTED=0
+shopt -s nocasematch
+emit_certificate() {
+  if [[ "$CERT_OWNER" == *emudhra* || "$CERT_OWNER" == *"emSign ECC Root CA - G3"* ]]; then
+    MATCH_COUNT=$((MATCH_COUNT + 1))
+    printf "MATCHING_CERTIFICATE_ALIAS=%s\n" "$CERT_ALIAS"
+    printf "MATCHING_CERTIFICATE_ENTRY_TYPE=%s\n" "$CERT_ENTRY"
+    printf "MATCHING_CERTIFICATE_SUBJECT=%s\n" "$CERT_OWNER"
+    printf "MATCHING_CERTIFICATE_SHA256=%s\n" "$CERT_SHA"
+    echo "MATCHING_CERTIFICATE_METADATA_END=1"
+  fi
+}
+while IFS= read -r LINE; do
+  case "$LINE" in
+    "Alias name:"*)
+      if [[ "$CERT_STARTED" == 1 ]]; then emit_certificate; fi
+      CERT_STARTED=1
+      CERT_ALIAS="${LINE#Alias name: }"
+      CERT_ENTRY=UNKNOWN; CERT_OWNER=UNKNOWN; CERT_SHA=UNKNOWN
+      ;;
+    "Entry type:"*) CERT_ENTRY="${LINE#Entry type: }" ;;
+    "Owner:"*) CERT_OWNER="${LINE#Owner: }" ;;
+    *)
+      if [[ "$LINE" =~ ^[[:space:]]*SHA256:[[:space:]]*(.*)$ && "$CERT_SHA" == UNKNOWN ]]; then
+        CERT_SHA="${BASH_REMATCH[1]}"
+      fi
+      ;;
+  esac
+done < <(printf "%s\n" "$CERT_LIST")
+if [[ "$CERT_STARTED" != 1 ]]; then
+  echo "CERTIFICATE_METADATA=BLOCKED_NO_ALIAS_RECORDS"; exit 2
 fi
-if ! CERT_MATCHES="$(printf "%s\\n" "$CERT_LIST" | awk '
-  function emit() {
-    if (tolower(owner) ~ /emudhra|emsign ecc root ca - g3/) {
-      ++count
-      print "MATCHING_CERTIFICATE_ALIAS=" alias
-      print "MATCHING_CERTIFICATE_ENTRY_TYPE=" entry
-      print "MATCHING_CERTIFICATE_SUBJECT=" owner
-      print "MATCHING_CERTIFICATE_SHA256=" sha
-      print "MATCHING_CERTIFICATE_METADATA_END=1"
-    }
-  }
-  /^Alias name:/ { if (started) emit(); started=1; alias=substr($0,13); entry="UNKNOWN"; owner="UNKNOWN"; sha="UNKNOWN" }
-  /^Entry type:/ { entry=substr($0,13) }
-  /^Owner:/ { owner=substr($0,8) }
-  /^[[:space:]]*SHA256:/ { if (sha=="UNKNOWN") { sub(/^[[:space:]]*SHA256:[[:space:]]*/, ""); sha=$0 } }
-  END { if (started) emit(); print "MATCHING_CERTIFICATE_COUNT=" count+0 }
-')"; then
-  echo "CERTIFICATE_METADATA=BLOCKED_EXTRACTION_FAILED"
-  exit 2
-fi
-printf "%s\\n" "$CERT_MATCHES"
-if [[ "$CERT_MATCHES" != *"MATCHING_CERTIFICATE_COUNT=0"* ]]; then
+emit_certificate
+shopt -u nocasematch
+printf "MATCHING_CERTIFICATE_COUNT=%s\n" "$MATCH_COUNT"
+echo "CERTIFICATE_METADATA=PASS"
+if (( MATCH_COUNT > 0 )); then
   echo "EMUDHRA_ROOT_MATCH=FOUND_REQUIRES_REVIEW"
 else
   echo "EMUDHRA_ROOT_MATCH=NOT_FOUND_IN_KEYTOOL_OUTPUT_NOT_PROOF_OF_MITIGATION"
