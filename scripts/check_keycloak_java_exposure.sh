@@ -67,7 +67,35 @@ if ! CERT_LIST="$("$KEYTOOL" -list -keystore "$CA" -storepass changeit -v 2>/dev
   exit 2
 fi
 echo "JAVA_CERTIFICATE_LIST=PASS"
-if [[ "$CERT_LIST" =~ Owner:.*(emSign[[:space:]]ECC[[:space:]]Root[[:space:]]CA[[:space:]]-[[:space:]]G3|eMudhra) ]]; then
+# A subject-name match can refer to an unrelated or already corrected
+# certificate. Emit metadata for independent fingerprint/chain verification.
+# awk reads a pipe; unlike Bash here-strings, it needs no writable /tmp.
+if ! command -v awk >/dev/null 2>&1; then
+  echo "CERTIFICATE_METADATA=BLOCKED_NO_AWK"
+  exit 2
+fi
+if ! CERT_MATCHES="$(printf "%s\\n" "$CERT_LIST" | awk '
+  function emit() {
+    if (tolower(owner) ~ /emudhra|emsign ecc root ca - g3/) {
+      ++count
+      print "MATCHING_CERTIFICATE_ALIAS=" alias
+      print "MATCHING_CERTIFICATE_ENTRY_TYPE=" entry
+      print "MATCHING_CERTIFICATE_SUBJECT=" owner
+      print "MATCHING_CERTIFICATE_SHA256=" sha
+      print "MATCHING_CERTIFICATE_METADATA_END=1"
+    }
+  }
+  /^Alias name:/ { if (started) emit(); started=1; alias=substr($0,13); entry="UNKNOWN"; owner="UNKNOWN"; sha="UNKNOWN" }
+  /^Entry type:/ { entry=substr($0,13) }
+  /^Owner:/ { owner=substr($0,8) }
+  /^[[:space:]]*SHA256:/ { if (sha=="UNKNOWN") { sub(/^[[:space:]]*SHA256:[[:space:]]*/, ""); sha=$0 } }
+  END { if (started) emit(); print "MATCHING_CERTIFICATE_COUNT=" count+0 }
+')"; then
+  echo "CERTIFICATE_METADATA=BLOCKED_EXTRACTION_FAILED"
+  exit 2
+fi
+printf "%s\\n" "$CERT_MATCHES"
+if [[ "$CERT_MATCHES" != *"MATCHING_CERTIFICATE_COUNT=0"* ]]; then
   echo "EMUDHRA_ROOT_MATCH=FOUND_REQUIRES_REVIEW"
 else
   echo "EMUDHRA_ROOT_MATCH=NOT_FOUND_IN_KEYTOOL_OUTPUT_NOT_PROOF_OF_MITIGATION"
