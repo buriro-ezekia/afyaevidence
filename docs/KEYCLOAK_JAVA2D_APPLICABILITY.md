@@ -144,6 +144,35 @@ Additional code/API references:
 - https://github.com/zxing/zxing/blob/zxing-3.4.0/javase/src/main/java/com/google/zxing/client/j2se/MatrixToImageWriter.java
 - https://javadoc.io/static/org.locationtech.jts/jts-core/1.19.0/org/locationtech/jts/awt/FontGlyphReader.html
 
+## Focused reverse-reference verification — committed, not yet run on candidate
+
+The follow-up script `scripts/audit_keycloak_java2d_reverse_refs.py`
+reads JVM class-file constant-pool UTF-8 entries from the exact pinned
+Keycloak image. It distinguishes references to
+`org/locationtech/jts/awt/FontGlyphReader`,
+`com/google/zxing/client/j2se/MatrixToImageWriter`,
+`java/awt/Font`, `java/awt/font/`, `java/awt/Graphics2D`
+and `javax/imageio/ImageIO`. Results include the referring
+class, JAR and section (`main`, `app` or `providers`).
+The command uses an unstarted temporary container, never the running
+Keycloak realm, and saves a new report under ignored `runtime/`.
+
+```bash
+python -m unittest discover -s tests -p 'test_keycloak_java2d_reverse_refs.py' -v
+python scripts/audit_keycloak_java2d_reverse_refs.py \\
+  --report runtime/security/keycloak-java2d-references.json
+```
+
+This is **structural reference evidence**, not a method-invocation
+call graph, a proof of remote reachability or a vulnerability test.
+A reference from a library to its own class or a graphics API is
+not evidence that a Keycloak request exercises that code. The
+result must be inspected by class owner and call path, ideally alongside
+an exact vendor patch or affected-method description.
+The command and tests are committed, but have **not yet passed in
+the operator's environment**. Preserve the existing JSON reports and
+do not overwrite their evidential record.
+
 ## Release acceptance and targeted next checks
 
 1. Execute the static inventory on the *pinned candidate*. Identify which
