@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import base64
 import binascii
+import binascii
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 import fcntl
@@ -19,7 +20,6 @@ from pathlib import Path
 import re
 import stat
 import sys
-import tempfile
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import serialization
