@@ -58,6 +58,31 @@ file. The previously observed 14 realm provider components are not
 custom JAR counts. The independent OpenJDK applicability and release
 security gates remain open.
 
+## Latest integrated verification — 25 October 2026 (319 tests)
+
+The operator ran the complete Node.js 24-compatible local verification
+following the additional security-audit tests and reported **319 tests
+in 60.570 seconds — OK** and `IDENTITY_WORKER_TESTS=PASS`.
+Reproducibility checks covered 15 synthetic snapshots; all 16
+synthetic evaluation cases and 32 scripted agent runs (standard and
+CPU profiles) passed. H-MEM reference, persistence, provenance,
+scope isolation, chronology and outbox retry all passed. The
+runtime package and isolated scripted profiles passed, with
+`EVALUATOR_KEYS_IN_WHEEL=NO` and `SOURCE_DATA_IN_WHEEL=NO`.
+`python -m pip check` reported *No broken requirements found*.
+
+Verification directory:
+`runtime/identity-verification-20261025T170250936725Z`.
+
+Runtime wheel SHA-256:
+`fd079677a16852b86b0fce69bc7baab7e27b6130c71ffe4af07e7941dccd9076`.
+
+This supersedes the previous **312-test local baseline** for comparison,
+while preserving all historical results. These tests did not invoke
+live Zetaris, Ollama or live H-MEM services. Neither hosted CI
+nor container-security release was approved by this verification:
+`CONTAINER_RELEASE=BLOCKED` and `PRODUCTION_RELEASE=BLOCKED`.
+
 ## Latest integrated verification — 25 October 2026 (312 tests)
 
 After activating Node.js 24 and rerunning the current integration
