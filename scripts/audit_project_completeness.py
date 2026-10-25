@@ -36,7 +36,10 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "scripts/audit_keycloak_live_realm.py",
              "tests/test_keycloak_live_realm.py",
              "scripts/audit_keycloak_container_extensions.py",
-             "tests/test_keycloak_container_extensions.py"]
+             "tests/test_keycloak_container_extensions.py",
+             "scripts/export_offline_briefcase.py",
+             "tests/test_offline_briefcase.py",
+             "docs/OFFLINE_EVIDENCE_BRIEFCASE.md"]
 RELEASE_GATES = {
     "independent_security_review": "PENDING",
     "hosted_ci": "NOT_VERIFIED",
