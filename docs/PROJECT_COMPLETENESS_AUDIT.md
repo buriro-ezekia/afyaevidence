@@ -43,6 +43,21 @@ saved to Git, and the local report remains under ignored `runtime/`.
 `CVE_2026_91415=OPEN`, `CONTAINER_SECURITY=BLOCKED_BY_REPORTED_CVES`
 and `PROJECT_RELEASE=BLOCKED`.
 
+## Container provider/theme inventory — 25 October 2026
+
+The operator reports matching results from two independent read-only
+inspections of the existing Keycloak container: `PROVIDER_JARS=0`,
+`THEME_DIRECTORIES=0`, `CUSTOM_THEME_FILES=1`, and
+`REALM_DATA=NOT_READ`. The fresh run returned
+`KEYCLOAK_EXTENSION_AUDIT=PASS`, with its ignored report at
+`runtime/security/keycloak-extension-inventory-20261025T073703Z.json`.
+The earlier report was retained. These results fulfil the **limited
+container provider/theme directory inventory**, not an audit of all
+built-in providers, dynamic code paths or the single unidentified theme
+file. The previously observed 14 realm provider components are not
+custom JAR counts. The independent OpenJDK applicability and release
+security gates remain open.
+
 ## Summary
 
 AfyaEvidence is a working **synthetic evidence-review prototype**, with local verification across source inspection, fixture generation, agent orchestration, H-MEM, authenticated review, isolated human dispositions and systemd-managed workers. **Production and clinical release are not authorised.**
