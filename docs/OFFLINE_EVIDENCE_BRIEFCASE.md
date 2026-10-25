@@ -15,7 +15,8 @@ synthetic evidence*, not an offline assistant or a synchronisation queue.
 ## What is included
 
 - A validated synthetic **fixture/scripted** investigation summary, numerical
-  statements and referenced evidence identifiers.
+  statements cross-checked against deterministic metric facts, and referenced
+  evidence identifiers.
 - Source receipt SHA-256 and immutable snapshot ID for provenance comparison.
 - Explicit limitations, suggested next checks and a clear human-review boundary.
 - One local HTML file, with embedded CSS, no scripts, no remote resources, no
