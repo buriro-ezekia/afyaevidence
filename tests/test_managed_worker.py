@@ -113,11 +113,10 @@ class ManagedWorkerTests(unittest.TestCase):
         # The rejected directory must not be silently made owner-only.
         self.assertEqual(self.state.stat().st_mode & 0o777, 0o755)
 
-    def test_private_directory_accepted_with_restrictive_umask(self):
+    def test_owner_only_directory_is_accepted(self):
         self.state.mkdir(mode=0o700)
         self.state.chmod(0o700)
-        with patch('os.umask', return_value=0o077):
-            self.assertEqual(mw.private_state(self.state), self.state.resolve())
+        self.assertEqual(mw.private_state(self.state), self.state.resolve())
 
     def test_audit_empty_not_recovery_claim_and_read_only(self):
         self.assertEqual(mw.audit(self.state),dict(state='NO_MANAGED_STATE',jobs=[]))
