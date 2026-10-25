@@ -8,7 +8,11 @@ ACTUAL="$(docker image inspect "$IMAGE" --format '{{.Id}}')" || {
   echo 'CANDIDATE_IMAGE=BLOCKED'; exit 2;
 }
 if [[ "$ACTUAL" != "$EXPECTED" ]]; then
-  echo 'CANDIDATE_IDENTITY=FAIL'; exit 2
+  echo 'CANDIDATE_IDENTITY=FAIL'
+  printf 'ACTUAL_LOCAL_CONFIG_ID=%s\nEXPECTED_REMOTE_CONFIG_ID=%s\n' "$ACTUAL" "$EXPECTED"
+  echo 'PINNED_MANIFEST=sha256:3e1ac632e743660017b1e6bb4c3ffc800fd02c82cdd0db858cd03456a98a8dfc'
+  echo 'IDENTITY_ACTION=INSPECT_LOCAL_IMAGE_AND_REGISTRY_MANIFEST'
+  exit 2
 fi
 echo 'CANDIDATE_IDENTITY=PASS'
 docker run --rm --network none --read-only --entrypoint /bin/bash "$IMAGE" -c '
