@@ -477,6 +477,33 @@ call path are still unverified. Keep `CVE_2026_91415=OPEN` and
 `CONTAINER_RELEASE=BLOCKED` pending vendor remediation or an
 independently reviewed applicability decision.
 
+### OTP requirement resolved from preserved realm report — 25 October 2026
+
+The operator inspected the already saved, sanitised realm-audit JSON
+without making new administrator API requests:
+
+```text
+OTP_REQUIRED_ACTION={'count': 1, 'default_count': 0, 'enabled_count': 1}
+OTP_FLOW_EXECUTIONS={'count': 1, 'requirement_counts': {'ALTERNATIVE': 1}}
+APPLICATION_REACHABILITY=NOT_VERIFIED
+CVE_2026_91415=OPEN
+```
+
+This confirms that the selected browser flow contains one OTP-related
+execution configured as **ALTERNATIVE**, rather than **REQUIRED**.
+The OTP-related required action is **enabled**, but **not a default**
+action. Keycloak's exact behaviour depends on its parent and nested
+flow requirements, conditional authenticators and user enrolment state.
+The observed configuration does not justify claiming that every user
+must complete OTP, nor that OTP image generation is inaccessible.
+
+**Security conclusion:** An OPTIONAL/ALTERNATIVE OTP step does not itself
+remove an application's code path or provide vendor-supported mitigation
+for OpenJDK's CVE-2026-91415. The specific vulnerable font-processing
+call and input reachability remain unverified. Keep
+`CVE_2026_91415=OPEN` and `CONTAINER_RELEASE=BLOCKED`.
+No realm configuration was changed.
+
 ### Independent release decision
 
 A human security reviewer must evaluate exact vendor patch guidance,
