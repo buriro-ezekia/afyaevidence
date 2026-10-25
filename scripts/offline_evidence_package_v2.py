@@ -16,6 +16,7 @@ import json
 from pathlib import Path
 import re
 import sys
+import stat
 import zipfile
 
 SCRIPT_DIR = Path(__file__).resolve().parent
@@ -167,6 +168,7 @@ def inspect(path, expected, now):
         if len(members) != 3 or {i.filename for i in members} != set(NAMES):
             raise ValueError("unexpected_zip_members")
         if any(i.is_dir() or i.flag_bits & 1 or
+               stat.S_ISLNK(i.external_attr >> 16) or
                i.file_size > MAX_ENTRY or i.compress_size > MAX_PACKAGE or
                i.filename.startswith("/") or "/" in i.filename or "\\" in i.filename
                for i in members):
