@@ -208,6 +208,30 @@ the high-level workflow diagram, human-review banner and the
 read-only offline briefcase; do not show terminal history or type
 private JDBC passwords into a recorded screen.
 
+## Operator witness acceptance — 25 October 2026
+
+The operator generated the redacted read-only witness successfully:
+
+```text
+HACKATHON_WITNESS=PASS
+HACKATHON_INTEGRATED_RECEIPT_SHA256=3befe3839b2988398a30ffc786d8f4f4bc6a77274dc9be637aa6eb2e7a813af1
+HACKATHON_EXPLANATION=reporting_artefact_supported
+HACKATHON_RECALLED_CONTEXT_COUNT=0
+HACKATHON_SERVICE_ATTESTATION=NOT_INDEPENDENTLY_VERIFIED
+HACKATHON_REVIEW_STATUS=awaiting_human_review
+PRODUCTION_RELEASE=BLOCKED
+HACKATHON_WITNESS_FILE=runtime/hackathon-witness-20261025.json
+```
+
+This closes the **local witness-generation gate**. Its receipt digest
+can be used to compare with the preserved integrated JSON receipt, but
+is not a network-service attestation or publisher signature. The
+witness excludes underlying sensitive receipt contents and demonstrates
+the continuing human-review boundary. The operator has not yet
+provided a recorded walkthrough, final submission acknowledgement or
+independent security approval. The separate focused witness-test
+summary was not included in this reported output.
+
 ## Submission and optional LinkedIn bonus
 
 Only include what was actually demonstrated. A credible demo can
