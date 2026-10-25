@@ -44,6 +44,40 @@ Both residual advisories remain **open**. Obtain vendor evidence and
 independent application-level review before considering a mitigation
 exception.
 
+## Exact certificate identity and vendor-chain clarification — 25 October 2026
+
+The operator completed the pinned, read-only candidate `keytool` metadata
+inspection. Exactly **one** broad eMudhra subject-name match was returned:
+alias `emsignrootca-g1`, entry type `trustedCertEntry`, subject
+`CN=emSign Root CA - G1, O=eMudhra Technologies Limited, OU=emSign PKI, C=IN`,
+SHA-256 certificate fingerprint
+`40:F6:AF:03:46:A9:9A:A1:CD:1D:55:5A:4E:9C:CE:62:C7:F9:63:46:03:EE:40:66:15:83:3D:C8:C8:D0:03:67`.
+The exact fingerprint is independently listed for emSign Root CA - G1 by the
+CA's public repository, and **must not be conflated with emSign ECC Root CA - G3**.
+The public Mozilla disclosure of the compromised intermediate keys stated
+there was no evidence that *all* eMudhra roots were compromised.
+
+**Important remaining verification:** the broad eMudhra-name filter did
+**not** assess a separately named, cross-signing root such as
+`AAA Certificate Services` / `Comodo AAA Services root`. Red Hat security
+bulletin `RHSB-2026-012` expressly identifies the Comodo AAA Services root
+and emSign ECC Root CA - G3 as relevant roots. Mozilla's incident
+communication also names emSign Root TLS CA - G3 as a potential chain.
+Check all these exact roots and any cross-signed versions by certificate
+fingerprints/trust status, not solely string matches on eMudhra.
+
+Evidence strengthens the applicability of the corrected
+`ca-certificates` package, but **does not close CVE-2026-91403** until
+these chain checks and vendor review are complete. Keep
+`CVE-2026-91415` separately open: `java.desktop` is present, while
+application-path reachability is unverified. Do not remove certificates
+or alter the running container during this assessment.
+
+References:
+- https://access.redhat.com/security/vulnerabilities/RHSB-2026-012
+- https://seclists.org/oss-sec/2026/q4/233
+- https://repository.emsign.com/
+
 ## OpenJDK 2D exposure — CVE-2026-91415
 
 Red Hat describes a flaw in OpenJDK 2D processing where crafted input reaching an exposed API may cause denial of service or limited data access/modification. The candidate continues to contain `java-21-openjdk-headless 1:21.0.12.1.1-1.2.el9`. Being headless does **not** prove `java.desktop` or Java 2D APIs are absent, nor does using Keycloak primarily for authentication prove those paths are unreachable.
