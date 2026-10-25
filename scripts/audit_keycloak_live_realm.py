@@ -11,6 +11,11 @@ import sys
 from urllib.parse import quote
 from urllib.request import Request, build_opener, HTTPSHandler, HTTPRedirectHandler
 
+# Make the companion read-only summariser discoverable both when run as a
+# script and when unittest loads this file directly via importlib.
+SCRIPT_DIR = Path(__file__).resolve().parent
+if str(SCRIPT_DIR) not in sys.path:
+    sys.path.insert(0, str(SCRIPT_DIR))
 from audit_keycloak_realm_exposure import summarise
 
 ORIGIN = "https://localhost:8443"
