@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 import sys
 
-OTP_TOKENS = ("otp", "totp", "configure-totp", "auth-otp-form")
+OTP_TOKENS = ("otp", "totp", "configure-totp", "configure_totp", "auth-otp-form")
 THEME_KEYS = ("loginTheme", "accountTheme", "emailTheme", "adminTheme")
 MAX_BYTES = 8_000_000
 
