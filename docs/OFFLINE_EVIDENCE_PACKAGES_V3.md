@@ -130,6 +130,30 @@ Tests cover valid and stale signatures, tampering with ZIP or signed data,
 unknown or mismatched publisher keys, future signing times, insecure
 private-key permissions and refusal to replace signed evidence.
 
+## Operator acceptance — 25 October 2026
+
+The operator successfully verified the signed synthetic development package
+against a public key explicitly installed in the local trusted-publisher
+directory:
+
+```text
+OFFLINE_PACKAGE_SIGNATURE=PASS
+OFFLINE_PACKAGE_INTEGRITY=PASS
+TRUSTED_PUBLISHER_KEY_ID=443a5010aaf6750db1775c18bd19dc36c53a43c540866ccf301d3bff2864e447
+OFFLINE_FRESHNESS=WITHIN_REVIEW_WINDOW
+TRUST_BASIS=EXPLICIT_LOCALLY_INSTALLED_KEY
+OFFLINE_REVOCATION_STATUS=NOT_CHECKED
+OFFLINE_REVIEW_SUBMISSION=DISABLED
+PRODUCTION_RELEASE=BLOCKED
+```
+
+This confirms **local Ed25519 signature verification** and v2 package
+integrity against the installed development public key. The operator did
+not provide the focused v3 test-suite output or evidence of independent
+publisher identity validation on a different device; neither is claimed
+here. A trusted-key file installed locally does not by itself establish
+organisational identity, revocation currency or clinical correctness.
+
 ## Revocation and security limitations
 
 An offline recipient cannot learn that a trusted signing key has been
