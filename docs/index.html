@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="AfyaEvidence is an evidence-driven AI investigation prototype for synthetic malaria reporting, using Zetaris, Ollama and Meterless H-MEM with human review.">
+  <meta name="theme-color" content="#0b1525">
+  <title>AfyaEvidence | Evidence before conclusions</title>
+  <style>
+    :root {color-scheme:dark;--bg:#0b1525;--panel:#13253a;--panel2:#162c42;--text:#eff7f9;--muted:#b1c5d0;--accent:#72dbce;--line:#335066}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font:16px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+    a{color:var(--accent);text-underline-offset:3px}a:focus-visible{outline:3px solid #ffe19b;outline-offset:4px}
+    .wrap{width:min(1100px,calc(100% - 40px));margin:auto}.top{border-bottom:1px solid var(--line);background:#101e30}
+    .nav{display:flex;gap:24px;align-items:center;justify-content:space-between;padding:17px 0;flex-wrap:wrap}.brand{font-weight:800;font-size:1.18rem;letter-spacing:-.02em;color:var(--text);text-decoration:none}.brand span{color:var(--accent)}.links{display:flex;flex-wrap:wrap;gap:19px}.links a{font-size:.9rem;color:var(--muted)}
+    .hero{padding:88px 0 72px;background:radial-gradient(ellipse at 85% 15%,#17605e66,transparent 44%)}.eyebrow{font-size:.8rem;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);font-weight:700}.hero h1{max-width:820px;font-size:clamp(2.4rem,5.6vw,4.9rem);line-height:1.11;letter-spacing:-.055em;margin:18px 0 22px}.hero p{max-width:760px;font-size:1.19rem;color:var(--muted)}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:29px}
+    .btn{display:inline-block;padding:11px 19px;border:1px solid var(--accent);border-radius:8px;background:var(--accent);font-weight:700;color:#071f2a;text-decoration:none}.btn.ghost{background:transparent;color:var(--accent)}
+    .scope{padding:13px 18px;border-left:4px solid var(--accent);background:#1d3448;color:#d7e9ee;margin-top:35px;max-width:850px}
+    section{padding:64px 0}section.alt{background:#101f32}h2{font-size:clamp(1.55rem,3vw,2.35rem);line-height:1.2;letter-spacing:-.035em;margin:0 0 15px}section>div>p.intro{color:var(--muted);max-width:820px;margin:0 0 30px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}.card{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:25px}.card h3{margin:0 0 9px;font-size:1.14rem}.card p{color:var(--muted);margin:0}.card .num{font-size:2.05rem;color:var(--accent);font-weight:800;line-height:1.25}
+    .flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px}.step{background:var(--panel2);border:1px solid var(--line);padding:19px;border-radius:10px}.step strong{display:block;margin-bottom:8px}.step span{font-size:.92rem;color:var(--muted)}
+    .demo{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}.video{aspect-ratio:16/9;background:#050c15;border-radius:12px;overflow:hidden;border:1px solid var(--line)}iframe{width:100%;height:100%;border:0}
+    .kicker{display:block;color:var(--accent);letter-spacing:.07em;font-size:.78rem;text-transform:uppercase;margin-bottom:9px}.note{font-size:.89rem;color:var(--muted)}
+    .statline{margin-top:26px;padding:17px 20px;border:1px solid var(--line);background:var(--panel);border-radius:10px;color:var(--muted)}
+    footer{padding:28px 0 42px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+    @media(max-width:760px){.grid{grid-template-columns:1fr}.flow{grid-template-columns:1fr 1fr}.demo{grid-template-columns:1fr}.hero{padding:58px 0}.wrap{width:min(100% - 28px,1100px)}section{padding:43px 0}}
+    @media(max-width:450px){.flow{grid-template-columns:1fr}.links{gap:11px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  </style>
+</head>
+<body>
+  <header class="top"><nav class="nav wrap" aria-label="Main navigation">
+    <a class="brand" href="#home">Afya<span>Evidence</span></a>
+    <div class="links"><a href="#approach">Approach</a><a href="#architecture">Architecture</a><a href="#evidence">Verification</a><a href="#video">Demonstration</a><a href="https://github.com/buriro-ezekia/afyaevidence">GitHub</a></div>
+  </nav></header>
+  <main id="home">
+    <div class="hero"><div class="wrap">
+      <div class="eyebrow">Evidence-driven agentic AI · Synthetic reporting prototype</div>
+      <h1>Evidence before conclusions.</h1>
+      <p>Why did reported malaria indicators change? AfyaEvidence investigates reporting revisions, completeness and testing patterns, then prepares traceable findings for a person to review.</p>
+      <div class="actions"><a class="btn" href="#video">Watch the demonstration</a><a class="btn ghost" href="https://github.com/buriro-ezekia/afyaevidence/tree/work/keycloak-live-acceptance">Explore the implementation</a></div>
+      <div class="scope"><strong>Demonstration scope:</strong> fictional facilities and synthetic aggregate reports only. AfyaEvidence is not a clinical diagnostic tool or a deployed disease-surveillance system.</div>
+    </div></div>
+    <section id="approach"><div class="wrap">
+      <span class="kicker">The question</span><h2>An unusual figure needs an explanation, not a guess.</h2>
+      <p class="intro">A change in reported positives may reflect expanded testing, a late revision, missing records or an unresolved movement in accepted indicators. AfyaEvidence separates what the reporting evidence explains from what still requires investigation.</p>
+      <div class="grid">
+        <article class="card"><h3>Check the records</h3><p>Inspect the facility register, submission history and report versions. Identify missing, conflicting or withdrawn records.</p></article>
+        <article class="card"><h3>Explain the figures</h3><p>Compare raw and accepted totals using deterministic calculations. Ground each proposed explanation in evidence.</p></article>
+        <article class="card"><h3>Keep people accountable</h3><p>Deliver a candidate brief marked awaiting human review. No autonomous approval, source editing or outbreak declaration.</p></article>
+      </div>
+    </div></section>
+    <section id="architecture" class="alt"><div class="wrap">
+      <span class="kicker">How it works</span><h2>A bounded investigation workflow</h2>
+      <p class="intro">The model proposes actions within explicit permissions; host-controlled tools retain authority over source selection, arithmetic and evidence checks.</p>
+      <div class="flow" aria-label="Investigation steps">
+        <div class="step"><strong>1. Zetaris</strong><span>Reviewed JDBC access to registered synthetic CSV-backed reporting tables</span></div>
+        <div class="step"><strong>2. Validation</strong><span>Version-aware snapshots, reporting quality and consistent comparisons</span></div>
+        <div class="step"><strong>3. Ollama</strong><span>Local, bounded model proposals and approved investigation tools</span></div>
+        <div class="step"><strong>4. H-MEM</strong><span>Pinned Meterless reference for scoped historical context where available</span></div>
+        <div class="step"><strong>5. Human review</strong><span>Evidence-linked brief requiring a separate reviewer decision</span></div>
+      </div>
+      <p class="note">The successful integrated demonstration recalled zero historical H-MEM notes. Memory integration was exercised, but recalled notes did not influence that explanation.</p>
+    </div></section>
+    <section id="evidence"><div class="wrap">
+      <span class="kicker">Verification</span><h2>Reproducible tests and explicit boundaries</h2>
+      <div class="grid">
+        <div class="card"><div class="num">335</div><h3>Local tests passed</h3><p>Operator-reported fixture, package and security-boundary regression on 26 October 2026.</p></div>
+        <div class="card"><div class="num">16</div><h3>Synthetic evaluation scenarios</h3><p>Across 15 reproducible snapshots and 32 scripted agent executions.</p></div>
+        <div class="card"><div class="num">3/3</div><h3>Hosted CI jobs passed</h3><p>CircleCI pipeline #26: Python 3.12, 3.13 and 3.14 at commit d3941a5.</p></div>
+      </div>
+      <div class="statline">A separately reported combined Zetaris–Ollama–H-MEM execution completed with the candidate still awaiting human review. Fixture tests did not contact live sponsor services. Historical receipts are not independent network attestations; production release remains blocked.</div>
+      <p><a href="https://github.com/buriro-ezekia/afyaevidence/blob/work/keycloak-live-acceptance/docs/HACKATHON_PHASE1_FREEZE.md">Read the verification record</a></p>
+    </div></section>
+    <section id="video" class="alt"><div class="wrap demo">
+      <div><span class="kicker">Open Agent Hackathon 2026</span><h2>See the investigation explained.</h2><p>The short walkthrough covers synthetic report revisions, the agent's integration boundaries, evidence-linked explanations and the human-review requirement.</p><p class="note">This is an illustrated explanation of previously reported testing, not a recording of live Zetaris execution.</p><p><a class="btn ghost" href="https://youtu.be/h3Reux-_e7A">Open video on YouTube</a></p></div>
+      <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/h3Reux-_e7A" title="AfyaEvidence project demonstration" loading="lazy" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>
+    </div></section>
+    <section><div class="wrap">
+      <span class="kicker">Source and responsible use</span><h2>Explore the code and its limitations.</h2>
+      <p class="intro">The working experimental implementation is maintained on the development branch. Offline exports are read-only. Local identity and security experiments are not production approvals, and the candidate Keycloak image still has unresolved security findings.</p>
+      <div class="actions"><a class="btn" href="https://github.com/buriro-ezekia/afyaevidence/tree/work/keycloak-live-acceptance">Source code</a><a class="btn ghost" href="https://github.com/buriro-ezekia/afyaevidence/blob/work/keycloak-live-acceptance/docs/HACKATHON_JUDGES_GUIDE.md">Technical guide</a></div>
+    </div></section>
+  </main>
+  <footer><div class="wrap">AfyaEvidence · Evidence-linked reporting investigation · Synthetic prototype · Human review required</div></footer>
+</body>
+</html>
