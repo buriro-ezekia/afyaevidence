@@ -173,6 +173,17 @@ approval. The operator reported actual integrated agent completion on
 25 October 2026; a concise demonstration and the final submission
 remain to be completed.
 
+### Hackathon Phase 1 source freeze
+
+The [Phase 1 source and evidence freeze](docs/HACKATHON_PHASE1_FREEZE.md)
+pins the submission's previously witnessed source at commit
+`80fbb9fd52c2ecc0b3f987e476e3908c6fbc4a71`. A new local
+read-only audit verifies the original integrated receipt's SHA-256
+against the credential-free witness and records the exact checkout
+and historical local/CircleCI evidence. The first successful
+CircleCI matrix ran **an earlier commit**, so a frozen-commit
+hosted PASS is **not yet claimed**. Production release remains blocked.
+
 ## Investigation contract
 
 For a fictional district, two reporting months and an observation cutoff, AfyaEvidence collects aggregate reporting evidence, compares canonical and raw diagnostics, identifies report revisions and prepares a source-linked brief for human consideration.
