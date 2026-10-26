@@ -59,6 +59,35 @@ class SubmissionFreezeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             MOD.validate(doc, raw, expected_sha=sha256(raw).hexdigest())
 
+    def test_existing_destination_reports_safe_reason(self):
+        with tempfile.TemporaryDirectory() as home:
+            folder = Path(home)
+            out = folder / "freeze.json"
+            out.write_text("existing report", encoding="utf-8")
+            result = subprocess.run([
+                sys.executable, str(SCRIPT),
+                "--witness", str(folder / "missing-witness.json"),
+                "--integrated-receipt", str(folder / "missing-receipt.json"),
+                "--output", str(out),
+            ], capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("SUBMISSION_FREEZE_REASON=output_already_exists", result.stdout)
+            self.assertEqual(out.read_text(), "existing report")
+
+    def test_missing_integrated_receipt_reports_specific_reason(self):
+        with tempfile.TemporaryDirectory() as home:
+            folder = Path(home)
+            out = folder / "freeze.json"
+            result = subprocess.run([
+                sys.executable, str(SCRIPT),
+                "--witness", str(folder / "absent-witness.json"),
+                "--integrated-receipt", str(folder / "absent-integrated.json"),
+                "--output", str(out),
+            ], capture_output=True, text=True, timeout=15)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn("SUBMISSION_FREEZE_REASON=integrated_receipt_missing", result.stdout)
+            self.assertFalse(out.exists())
+
     def test_missing_file_blocks_and_never_writes(self):
         with tempfile.TemporaryDirectory() as home:
             folder = Path(home)
