@@ -20,7 +20,13 @@ FROZEN_SOURCE_SHA = "80fbb9fd52c2ecc0b3f987e476e3908c6fbc4a71"
 INTEGRATED_SHA = "3befe3839b2988398a30ffc786d8f4f4bc6a77274dc9be637aa6eb2e7a813af1"
 CI_FIRST_GREEN_SHA = "391237a992a93291771c57e0b09ab3b4d00d2178"
 HEX64 = re.compile(r"^[0-9a-f]{64}$")
+GIT_SHA = re.compile(r"^(?:[0-9a-f]{40}|[0-9a-f]{64})$")
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def valid_git_commit_sha(value):
+    """Accept full SHA-1 or SHA-256 Git object IDs; never abbreviated IDs."""
+    return isinstance(value, str) and GIT_SHA.fullmatch(value) is not None
 
 
 def git(*args):
@@ -74,7 +80,7 @@ def freeze(args):
     digest = validate(witness, receipt)
     current = git("rev-parse", "HEAD")
     git("cat-file", "-e", FROZEN_SOURCE_SHA + "^{commit}")
-    if not HEX64.fullmatch(current):
+    if not valid_git_commit_sha(current):
         raise ValueError("invalid_head_sha")
     # The frozen commit must be an ancestor of the checked-out source.
     if subprocess.run(["git", "merge-base", "--is-ancestor", FROZEN_SOURCE_SHA, "HEAD"],
