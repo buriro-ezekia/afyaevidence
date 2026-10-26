@@ -161,14 +161,59 @@ then rerun with a **new** output name. This commit fixes the diagnosed
 `invalid_head_sha` check; other audit gates remain real and may still
 need independent investigation.
 
+## Phase 1 acceptance evidence — 26 October 2026
+
+The operator's successful read-only freeze audit returned:
+
+```text
+SUBMISSION_FREEZE=PASS
+FROZEN_SOURCE_COMMIT=80fbb9fd52c2ecc0b3f987e476e3908c6fbc4a71
+AUDITOR_CHECKOUT_HEAD=d3941a519a7ca8430f3d13629375c8712c7b2954
+INTEGRATED_RECEIPT_SHA256=3befe3839b2988398a30ffc786d8f4f4bc6a77274dc9be637aa6eb2e7a813af1
+CIRCLECI_FROZEN_COMMIT=NOT_VERIFIED
+SOURCE_WORKTREE=CLEAN_TRACKED_FILES
+SUBMISSION_STATUS=DRAFT
+PRODUCTION_RELEASE=BLOCKED
+FREEZE_OUTPUT=runtime/hackathon-phase1-freeze-sha-fix-20261026.json
+```
+
+Updated local fixture regression **335 tests PASS (71.306 seconds)**,
+16 evaluation scenarios, 15 deterministic snapshots, 32 scripted
+agent runs in standard/cpu profiles, H-MEM reference checks PASS,
+isolated runtime wheel PASS and `pip check` no broken requirements.
+Local verification directory:
+`runtime/identity-verification-20261026T061827628070Z`.
+Wheel digest:
+`3b85c765183d3024a8e7c51e2c53f49b673b3a0284430dc171624d168ab4b0ab`.
+
+CircleCI **pipeline #26, workflow `synthetic-ci`, commit `d3941a5`,
+branch `work/keycloak-live-acceptance`: SUCCESS. All three
+`synthetic-verification` Python 3.12, 3.13 and 3.14 jobs were
+green in the operator's screenshot (pipeline completed in ~1m28s).
+This independently hosts the fixture-only suite at the **auditor
+checkout** revision; the original pinned source revision is its
+ancestor but was not itself the CircleCI pipeline's checkout.
+
+The latest suite explicitly reported `LIVE_MODEL=NOT_RUN`,
+`LIVE_ZETARIS=NOT_RUN`, `LIVE_HMEM=NOT_RUN`.
+The separately witnessed earlier combined integration is the evidence
+for actual sponsor calls. Do not describe the fixture matrix as a
+live-services test, a network attestation, or a clinical/production
+release approval.
+
+**Phase 1 source/evidence freeze accepted for hackathon readiness.**
+This documentation update is a later commit and does not retroactively
+change the previously tested source revision.
+The HackOS application is still draft. Production release remains blocked.
+
 ## Exit criteria
 
 - [x] Frozen source commit identified.
 - [x] Prior integrated receipt/witness exact paths and hash recorded.
 - [x] Historical local and CircleCI checks clearly documented.
-- [ ] Freeze audit and new tests executed on WSL.
-- [ ] Full suite executed against latest checkout; new evidence saved.
-- [ ] CircleCI rerun against the exact frozen source commit.
+- [x] Freeze audit PASS against checkout `d3941a5` (operator output, 26 October).
+- [x] Full suite PASS: 335 tests in 71.306 seconds (operator output, 26 October).
+- [x] CircleCI pipeline #26 PASS on auditor checkout `d3941a5` across Python 3.12/3.13/3.14; exact earlier frozen source commit `80fbb9f` was **not** separately run by this pipeline.
 - [ ] Final recorded demo, description and required HackOS submission.
 
 **Judges:** Use the fixed source link above, not an assumed
