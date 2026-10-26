@@ -148,6 +148,7 @@ All fictional data, code and results should be described accurately. Please use 
 ## Further reading
 
 - [Judges' quick guide](docs/HACKATHON_JUDGES_GUIDE.md)
+- [Four-minute video production pack and narration](docs/HACKATHON_VIDEO_PRODUCTION.md)
 - [Phase 1 evidence freeze](docs/HACKATHON_PHASE1_FREEZE.md)
 - [Agent design and investigation controls](docs/AGENT_LOOP.md)
 - [Synthetic data and evaluation](docs/SYNTHETIC_DATA.md)
