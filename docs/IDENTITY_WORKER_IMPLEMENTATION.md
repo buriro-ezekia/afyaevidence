@@ -1,4 +1,4 @@
-# Individual identity and managed workers — implemented, pending live acceptance
+# Individual identity and managed workers — implementation and verification
 
 ## What this slice adds
 
@@ -24,7 +24,10 @@ revoked, mismatched or unavailable provider responses fail closed. There is no
 shared bearer-token fallback. This intentionally trades availability for explicit
 revocation enforcement. The provider must return `active`, `iss`, `aud`, `sub`
 and `exp` matching the signed access token. Access tokens must have `typ=at+jwt`,
-string `aud`, `iat`, `nbf`, `exp`, `jti`, and a list-valued configured roles claim.
+string `aud`, `iat`, `exp`, `jti`, and a list-valued configured roles claim.
+The JWT `nbf` claim is optional. If present, it is checked as an integer
+not-before time; if absent, signed `iat` supplies the lower time bound.
+Future-issued and expired tokens remain invalid.
 Provider adapters using a different contract require explicit tests, not relaxed
 validation or unsafe decoding. The provider must restrict reviewer roles to the
 intended human accounts; an issuer/subject claim alone is not independent proof
@@ -189,13 +192,25 @@ Use a new synthetic unreviewed run to validate a new individual reviewer decisio
 Verify viewer denial, reviewer success, administrator-only recovery, expiry,
 revocation and provider outage with the actual provider before live acceptance.
 
+## Updated local acceptance evidence (23–25 October 2026)
+
+The operator reported 232 passing Python tests on the Keycloak integration
+branch; real systemd containment and supervised synthetic execution passed.
+Live Keycloak PKCE login, strict token verification, mandatory introspection
+and role checks passed for three application accounts. The disposable
+synthetic database also passed HTTP viewer/administrator denial and one
+reviewer decision with an immutable verified audit. Provider outage returned
+HTTP 503 for a previously valid token; session logout resulted in HTTP 401
+for the same token; recovery passed. This evidence is local/operator-reported,
+not independently executed by hosted CI. See the [completeness audit](PROJECT_COMPLETENESS_AUDIT.md).
+
 ## Security/release limitations
 
 Implemented controls are not a certification or an independent penetration test.
-Live identity-provider integration, real systemd/OOM/host-reboot acceptance,
-TLS/reverse-proxy integration, dependency locking/vulnerability review, backup-
-restore drills, fleet monitoring, stronger host isolation and independent
-security review remain acceptance gates. The optional dependency requirements
+The tested live Keycloak and systemd paths do not establish full OOM/host-reboot
+acceptance, TLS/reverse-proxy deployment, deployment dependency locking and
+container-security clearance, backup/restore drills, fleet monitoring, strong
+host isolation or independent security review. These remain release gates. The optional dependency requirements
 state a compatibility range; retain the verifier's exact environment record and
 create a reviewed deployment lock before release. No hosted CI success, production
 readiness, medical approval or automatic merge is claimed.

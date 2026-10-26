@@ -1,5 +1,16 @@
 # AfyaEvidence implementation instructions
 
+> **Current engineering status (25 October 2026):** The first paragraph is
+> historical context for the original implementation plan. Later draft
+> branches added verified individual reviewers, a Keycloak PKCE acceptance
+> workflow, systemd-managed worker recovery and local HTTP review controls.
+> Operator-reported tests have passed on synthetic data, but independent
+> security review, deployment acceptance and production licensing remain
+> open. In particular, the candidate Keycloak image still reports two
+> OpenJDK CVEs. Consult `docs/PROJECT_COMPLETENESS_AUDIT.md` and
+> `docs/KEYCLOAK_RESIDUAL_SECURITY.md` before making release claims.
+>
+
 This repository contains the architecture, source-access verifiers, synthetic suite and bounded runtime snapshot/analysis package, pinned H-MEM bridge and strict agent loop. Read README.md, docs/FIRST_DATA_ACCESS.md and docs/ARCHITECTURE.md, then implement the ordered issues in docs/IMPLEMENTATION.md. Do not claim sponsor integration, the agent application or deployment is complete until the relevant checks actually run.
 
 - Build the scoped synthetic malaria reporting investigation workflow. Keep diagnosis, treatment, outbreak declaration, real patient data, forecasting and source edits outside this increment.

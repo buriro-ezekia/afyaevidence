@@ -1,67 +1,160 @@
 # AfyaEvidence
 
-An evidence-grounded malaria reporting investigation agent for a district reporting reviewer.
+**Understanding changes in malaria reporting, with evidence that people can check.**
 
-**Status:** synthetic source contracts, immutable snapshots, deterministic analysis, the pinned H-MEM bridge and bounded agent CLI are implemented. Prior operator-reported live Zetaris gates remain recorded. The new explicit CPU profile performs one model-selected follow-up and one brief-only request, with smaller phase contexts and a reserved final-request allowance. Actual `qwen2.5:1.5b` inference on fixture data produced a valid review-only candidate in two requests (201.28 seconds). The current combined live verification is **BLOCKED at Zetaris login**, including with the operator-supplied credential; no combined PASS is claimed. See [CPU verification](docs/CPU_VERIFICATION.md) for actual checks, preserved failures and the remaining gate. The authenticated review interface and deployment remain unimplemented.
+AfyaEvidence is an experimental AI investigation assistant for district-level malaria reporting. It helps a reviewer answer a practical question: *when reported malaria indicators change, what does the available reporting evidence actually explain?*
 
-Repository: [buriro-ezekia/afyaevidence](https://github.com/buriro-ezekia/afyaevidence).
+A rise in reported positives does not always mean the underlying situation has changed. A late correction, a withdrawn report, a missing facility or more people being tested can alter the figures. AfyaEvidence examines those possibilities before preparing a traceable explanation for a human reviewer.
 
-## First runnable milestone
+The current project works with **fictional facilities and synthetic aggregate records**. It is not deployed disease surveillance, a diagnostic tool or a system that declares outbreaks.
 
-Use your **existing checkout** in the Ubuntu VS Code terminal:
+## What the agent does
+
+For a selected district, two months and an observation cutoff, AfyaEvidence:
+
+1. Collects a verified snapshot of facility reporting, including the facility register and report-version log.
+2. Checks completeness, conflicting records, missing values and revised submissions.
+3. Compares raw report totals with accepted, version-aware figures using deterministic calculations.
+4. Uses a bounded agent to investigate plausible explanations and draft findings linked to the evidence.
+5. Leaves the candidate **awaiting human review**. It cannot approve its own findings or alter source records.
+
+The distinction matters. If an apparent increase comes from counting an older report alongside its replacement, the reviewer should see that clearly. Where a change remains unexplained after the available checks, the system says so rather than assigning a cause.
+
+## Open Agent Hackathon 2026
+
+**Submission track:** The Agent That Can Explain Why  
+**Project scope:** Synthetic malaria reporting investigations  
+**Source revision demonstrated:** [80fbb9f](https://github.com/buriro-ezekia/afyaevidence/tree/80fbb9fd52c2ecc0b3f987e476e3908c6fbc4a71)  
+**Development branch:** `work/keycloak-live-acceptance`  
+**Demonstration video:** [AfyaEvidence — Open Agent Hackathon 2026](https://youtu.be/h3Reux-_e7A) (illustrated walkthrough; not a recording of live service execution).
+
+The [investigation and architecture guide](docs/HACKATHON_JUDGES_GUIDE.md) describes the workflow, its evidence boundaries and the demonstration. The [verification record](docs/HACKATHON_PHASE1_FREEZE.md) contains the source revisions and evidence hashes.
+
+### How the sponsor technologies contribute
+
+| Technology | Role in the demonstrated workflow |
+| --- | --- |
+| **Zetaris** | Reads registered synthetic CSV-backed reporting tables through reviewed JDBC access. The application does not grant the model arbitrary SQL access. |
+| **Meterless H-MEM reference** | Provides a pinned, locally running Node 24 memory bridge for scoped historical review context, with provenance and chronological limits. |
+| **Ollama** | Runs the local model used by the bounded agent to select allowed investigation actions and propose an explanation. |
+| **Python analysis and review controls** | Own deterministic metrics, evidence validation, source immutability and the human decision boundary. |
+
+The successful integrated demonstration used Zetaris, Ollama and the pinned H-MEM reference. **No historical memory notes were recalled in that run**; the memory connection worked, but those notes did not contribute to its explanation. Do not confuse this with independent verification of external service logs.
+
+## Demonstrated results
+
+The following results describe local synthetic verification, hosted fixture testing and a separately observed integration exercise. They do not establish production or clinical readiness.
+
+| Check | Observed evidence |
+| --- | --- |
+| Full local regression, 26 October 2026 | **335 tests passed** in 71.306 seconds |
+| Synthetic evaluation | **15** reproducible snapshots, **16** evaluation scenarios |
+| Agent fixture evaluation | **32** scripted runs across standard and CPU profiles |
+| Hosted verification | CircleCI **pipeline #26**: Python 3.12, 3.13 and 3.14 all passed at commit `d3941a5` |
+| Integrated demonstration, 25 October | Actual Zetaris + Ollama + H-MEM operation reported **PASS**; two model calls, five tool calls, zero repairs |
+| Candidate outcome | `reporting_artefact_supported`, `awaiting_human_review` |
+| Receipt integrity | Read-only source freeze **PASS**; previous integrated receipt SHA-256 matched the preserved witness |
+
+The automated fixture suite does **not** call live Zetaris, Ollama or H-MEM services. The earlier integrated operator receipt and redacted witness document that separate demonstration. The local receipt is **not** an independent network attestation.
+
+## Try the synthetic checks
+
+The safest starting point is the deterministic fixture suite. It requires no patient records, Zetaris credentials or live model endpoint.
+
+Requirements: **Ubuntu/WSL**, **Python 3.12 or later**, **Node.js 24** and the optional Python identity dependencies. From a fresh clone of this development branch:
 
 ```bash
-git fetch origin
-git switch codex/architecture-and-jdbc-probe
-git pull --ff-only origin codex/architecture-and-jdbc-probe
-python scripts/generate_probe.py --check
-python scripts/verify_zetaris.py --check-fixture
-python scripts/generate_synthetic.py --check
-python scripts/evaluate_synthetic.py
-python scripts/verify_zetaris_snapshot.py --check-fixture
-python scripts/check_agent.py
-python scripts/analyse_snapshot.py --mode fixture --snapshot data/synthetic/fx_32e8b610
-python -m unittest discover -s tests -v
+git clone --branch work/keycloak-live-acceptance \
+  https://github.com/buriro-ezekia/afyaevidence.git
+cd afyaevidence
+
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install '.[identity]'
+
+# With nvm installed and Node.js 24 available:
+source "$HOME/.nvm/nvm.sh"
+nvm use 24
+
+python scripts/verify_identity_worker.py --fixtures
+python -m pip check
 ```
 
-The full test suite requires Python 3.12+ and Node 24 in Ubuntu/WSL. Fixture calculations require no Java, credentials, new model or live database; the H-MEM tests execute the pinned local TypeScript reference without npm installs. They validate local fixtures. The [synthetic-data guide](docs/SYNTHETIC_DATA.md) covers regeneration, scenario IDs, independent answers, staging and package isolation. If Git reports local changes/divergence, resolve them before pulling; do not reset the existing checkout.
+The verifier runs the Python tests, deterministic data and agent checks, H-MEM reference tests and isolated package checks. It prints `IDENTITY_WORKER_TESTS=PASS` only when all included checks succeed, and saves local logs in `runtime/identity-verification-…`.
 
-The original [first data-access guide](docs/FIRST_DATA_ACCESS.md) retains the exact Zetaris JDBC probe. A failed live query never falls back to local replay.
+For a smaller, fully scripted agent exercise:
 
-## Product contract
+```bash
+python scripts/run_agent.py \
+  --data-mode fixture \
+  --snapshot data/synthetic/fx_32e8b610 \
+  --model-provider scripted \
+  --output runtime/agent-fixture-demo.json
+```
 
-Given one fictional district, two reporting months and a fixed observation cutoff, investigate why reported confirmed malaria episodes differ. Retrieve aggregate reporting evidence through Zetaris, calculate transparent comparisons, examine alternative explanations and prepare a source-linked brief for human review.
+Choose a different output filename if it already exists. The scripted provider verifies the investigation workflow; **it is not a test of live language-model reasoning**.
 
-Initial scope: six fictional facilities, January 2024 to December 2025, three source tables, three core scenarios plus edge cases. There are 144 expected facility-months; report revisions can increase raw row counts. All data is synthetic. The prototype does not diagnose patients, declare outbreaks, recommend treatment or edit reporting records.
+To reproduce the real Zetaris–Ollama–H-MEM integration, consult the [hackathon readiness runbook](docs/HACKATHON_SUBMISSION_READINESS.md). It requires your own configured services, JDBC driver and private local credentials. The application never substitutes fixture data when a live source fails.
 
-## Design documents
+## Architecture in brief
 
-| Document | Implementation purpose |
-|---|---|
-| [Architecture](docs/ARCHITECTURE.md) | Components, dependency boundaries, investigation lifecycle, deployment and failure handling |
-| [First data access](docs/FIRST_DATA_ACCESS.md) | Six-row JDBC probe and operator-reported live acceptance |
-| [Bounded agent loop](docs/AGENT_LOOP.md) | Approved tools, strict actions, call budgets, referenced rendering and actual-model checks |
-| [Meterless H-MEM](docs/HMEM_BRIDGE.md) | Pinned actual reference, scoped reviewed-note persistence, provenance and outbox retries |
-| [Runtime analysis](docs/RUNTIME_ANALYSIS.md) | Immutable snapshots, explicit fixture/JDBC gateways, scoped facts and JSON receipts |
-| [Three-table verification](docs/VERIFY_SNAPSHOT.md) | Exact live JDBC hashes, join and reference parity |
-| [Synthetic data](docs/SYNTHETIC_DATA.md) | Fifteen reproducible snapshots, evaluator answers, checks and source-only staging |
-| [Data contract](docs/DATA_CONTRACT.md) | Three source tables, observation cutoffs, revision resolution and indicator semantics |
-| [Tool and API contracts](docs/CONTRACTS.md) | Model-visible tools, evidence/brief structures, human review and API endpoints |
-| [Evaluation](docs/EVALUATION.md) | Scenario answers, edge cases and separate fixture/live acceptance gates |
-| [Implementation backlog](docs/IMPLEMENTATION.md) | Ordered GitHub issues with acceptance criteria |
-| [Integration decisions](docs/adr/0001-local-runtime-and-adapters.md) | Technology choices, sponsor limitations and deferred scope |
-| [Source register](docs/SOURCES.md) | Official technical references and observed source revisions |
+```mermaid
+flowchart TD
+    U["District reporting reviewer"] --> Q["Question and observation cutoff"]
+    Q --> S["Verified synthetic reporting snapshot"]
+    Z["Zetaris: registered CSV-backed tables"] -->|Reviewed JDBC reads| S
+    S --> C["Deterministic quality and indicator checks"]
+    C --> A["Bounded investigation agent"]
+    O["Ollama local model"] -->|Structured action proposals| A
+    H["Meterless H-MEM reference"] -->|Scoped prior review context| A
+    A --> E["Evidence-linked candidate brief"]
+    E --> R["Human review required"]
+    E --> B["Read-only offline evidence briefcase"]
+```
 
-## Start implementation
+The host controls tool permissions, calculations and evidence references. A model cannot execute arbitrary SQL, edit reporting records, approve a candidate or turn historical memory into a current indicator.
 
-The original probe and full three-table JDBC verifier passed on the operator's machine. Next run the packaged [runtime analysis layer](docs/RUNTIME_ANALYSIS.md) against the registered revision source and retain its private snapshot and scoped analysis receipts.
+The [investigation guide](docs/HACKATHON_JUDGES_GUIDE.md) includes an example of the reporting-revision explanation and its limitations.
 
-The architecture tree remains a target: source contracts, generation, evaluator arithmetic, runtime analysis, the pinned memory bridge and bounded model loop are implemented; the authenticated UI and worker service remain planned. Deterministic checks, both scripted execution profiles and package isolation pass. Actual CPU model inference passes with fixture data; combined Zetaris/Ollama/H-MEM acceptance remains blocked at JDBC login in this verification. See [CPU verification](docs/CPU_VERIFICATION.md) and the [copyable operator commands](docs/AGENT_LOOP.md). No hosted CI PASS is claimed.
+## Offline reading and security limits
 
-## Development boundaries
+A completed synthetic investigation can be exported as a **read-only HTML evidence briefcase** for viewing without connectivity. Signed offline package experiments add hash checks, signatures and publisher-registry verification. They do **not** enable offline authentication, source refresh, clinical approval or synchronisation of reviewer decisions.
 
-The application queries Zetaris with the supplied Zetaris driver JAR, not a Hive or Spark driver. It does not start Spark. Source setup is an operator action separate from the agent. Model-generated SQL, shell execution and source-data writes are outside the agent's tool surface.
+The repository also contains experimental Keycloak-backed reviewer identity and supervised worker components. Local access-control tests are not production authorisation.
 
-Meterless H-MEM is the proposed memory integration. A model-provider adapter is a separate concern. Its deterministic reference uses mock embeddings and JSON persistence, so integration does not establish production readiness. The optional Meterless Runtime provider requires its own availability/authentication/capability tests.
+**Production release remains blocked.** The candidate Keycloak container still has reported security findings; independent security assurance, deployment controls and clinical governance have not been completed. Do not use the prototype for patient care or real public-health decisions.
 
-No secret, proprietary JAR, real health record or local database belongs in Git. Existing repositories inform design; copied code requires licence review, attribution and a clear record of pre-existing work. Choose a licence for original project code before publishing it; this pack does not make that decision for the owner.
+## Repository map
+
+| Location | Purpose |
+| --- | --- |
+| `src/afyaevidence/` | Analysis contracts, agent, adapters and local review services |
+| `data/synthetic/` | Reproducible fictional reporting snapshots |
+| `evals/` | Independent scenario expectations; not supplied to the agent |
+| `bridges/hmem/` | Pinned Meterless H-MEM reference and attribution |
+| `scripts/` | Verification, demonstrations, evidence export and audits |
+| `tests/` | Regression and security-boundary tests |
+| `docs/` | Technical design, provenance, security and operator runbooks |
+| `.circleci/config.yml` | Hosted synthetic-only verification matrix |
+
+## Development and contribution
+
+The working implementation is maintained on `work/keycloak-live-acceptance`. Earlier feature and identity changes remain under review and have not been merged into `main`. The demonstrated source revision is pinned above; later documentation updates should not be mistaken for the tested application revision.
+
+Changes should preserve immutable reporting inputs, evidence provenance and reviewer authority. Tests must distinguish scripted fixtures from actual Zetaris, Ollama and H-MEM service interactions. Before a release is considered, source licensing, security findings and operational controls require separate review.
+
+Use professional UK English and report verification outcomes precisely, including checks that are blocked or have not been run.
+
+## Further reading
+
+- [Judges' quick guide](docs/HACKATHON_JUDGES_GUIDE.md)
+- [Demonstration video production notes](docs/HACKATHON_VIDEO_PRODUCTION.md)
+- [Phase 1 evidence freeze](docs/HACKATHON_PHASE1_FREEZE.md)
+- [Agent design and investigation controls](docs/AGENT_LOOP.md)
+- [Synthetic data and evaluation](docs/SYNTHETIC_DATA.md)
+- [Meterless memory bridge](docs/HMEM_BRIDGE.md)
+- [Offline evidence briefcase](docs/OFFLINE_EVIDENCE_BRIEFCASE.md)
+- [CircleCI verification](docs/CIRCLECI_SYNTHETIC_SETUP.md)
+- [Residual Keycloak security](docs/KEYCLOAK_RESIDUAL_SECURITY.md)
+
+**AfyaEvidence's aim is straightforward: make the evidence behind an unusual reporting change easier to inspect, while keeping the decision with the person responsible for it.**

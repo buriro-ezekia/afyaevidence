@@ -199,12 +199,21 @@ class OIDCVerifier:
             raise IdentityError()
         claims = jwt.decode(token, public_key, algorithms=['RS256'],
             issuer=self.config.issuer, audience=self.config.audience,
-            options={'require': ['iss', 'aud', 'sub', 'exp', 'nbf', 'iat', 'jti'],
+            options={'require': ['iss', 'aud', 'sub', 'exp', 'iat', 'jti'],
                      'strict_aud': True}, leeway=0)
-        for key in ('iat', 'nbf', 'exp'):
-            if type(claims[key]) is not int or not math.isfinite(claims[key]):
+        # RFC 7519 makes nbf optional. If omitted, iat remains a mandatory
+        # signed lower bound; PyJWT also rejects tokens issued in the future.
+        # An explicitly supplied nbf must still be an integer and is enforced.
+        for key in ('iat', 'exp'):
+            if type(claims[key]) is not int:
                 raise IdentityError()
-        if not claims['iat'] <= claims['nbf'] < claims['exp'] or not 0 < claims['exp'] - claims['iat'] <= self.config.max_lifetime_seconds:
+        if 'nbf' in claims and type(claims['nbf']) is not int:
+            raise IdentityError()
+        effective_nbf = claims.get('nbf', claims['iat'])
+        if (not claims['iat'] <= effective_nbf < claims['exp']
+                or claims['iat'] > time.time()
+                or effective_nbf > time.time()
+                or not 0 < claims['exp'] - claims['iat'] <= self.config.max_lifetime_seconds):
             raise IdentityError()
         for key in ('sub', 'jti'):
             value = claims.get(key)

@@ -16,6 +16,19 @@ import sys
 
 ROOT=Path(__file__).resolve().parents[1]
 
+def node_preflight():
+    """Check that the active Linux Node runtime satisfies the pinned major."""
+    try:
+        result = subprocess.run(['node', '--version'], capture_output=True,
+                                text=True, timeout=8, check=False)
+    except (OSError, subprocess.TimeoutExpired):
+        return False, 'NOT_AVAILABLE'
+    version = result.stdout.strip()
+    parts = version[1:].split('.') if version.startswith('v') else []
+    return (result.returncode == 0 and len(parts) == 3 and
+            all(part.isdigit() for part in parts) and parts[0] == '24'), (version or 'UNKNOWN')
+
+
 def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--focused',action='store_true')
@@ -23,6 +36,20 @@ def main():
     a=p.parse_args()
     stamp=datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
     logs=ROOT/'runtime'/('identity-verification-'+stamp);logs.mkdir(parents=True)
+    node_ok, node_version = node_preflight()
+    if not node_ok:
+        metadata={'preflight':'BLOCKED_NODE_VERSION','node_version':node_version,
+                  'required_node_major':24,'checks':[], 'live_jdbc':'NOT_RUN',
+                  'live_oidc':'NOT_RUN','live_model':'NOT_RUN'}
+        (logs/'verification.json').write_text(json.dumps(metadata,indent=2)+'\n')
+        print('NODE_PREFLIGHT=BLOCKED_NODE_24_REQUIRED')
+        print('NODE_VERSION='+node_version)
+        print('NODE_REMEDIATION=source "$HOME/.nvm/nvm.sh" && nvm use 24')
+        print('IDENTITY_WORKER_TESTS=BLOCKED')
+        print('VERIFICATION_DIR='+str(logs))
+        return 2
+    print('NODE_PREFLIGHT=PASS')
+    print('NODE_VERSION='+node_version)
     env=dict(os.environ);env['PYTHONPATH']=str(ROOT/'src')+os.pathsep+str(ROOT/'tests')
     for key in ('AFYA_REVIEW_TOKEN','AFYA_OIDC_CLIENT_SECRET','ZETARIS_PASSWORD'):env.pop(key,None)
     versions={}
@@ -43,7 +70,7 @@ def main():
         commands.append([sys.executable,'-m','pip','wheel','.', '--no-deps','--wheel-dir',str(logs/'wheel')])
         commands.append([sys.executable,'scripts/check_runtime_package.py',str(logs/'wheel/afyaevidence-0.1.0-py3-none-any.whl'),
                          '--smoke-snapshot','data/synthetic/fx_32e8b610'])
-    metadata=dict(python=sys.version,executable=sys.executable,dependencies=versions,
+    metadata=dict(python=sys.version,executable=sys.executable,node_version=node_version,dependencies=versions,
                   focused=a.focused,fixtures=a.fixtures,checks=[],live_oidc='NOT_RUN',live_systemd='NOT_RUN',live_jdbc='NOT_RUN')
     for flag,name in [(['rev-parse','HEAD'],'git_head'),(['status','--short'],'git_status')]:
         result=subprocess.run(['git',*flag],cwd=ROOT,capture_output=True,text=True)

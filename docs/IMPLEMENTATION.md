@@ -1,5 +1,17 @@
 # Ordered GitHub implementation backlog
 
+> **Current implementation note (25 October 2026):** The issue breakdown below
+> is the original development backlog, not a statement that the review and
+> identity slices are still unimplemented. Later work on draft PRs #2–#4
+> introduced loopback review, verified OIDC identities, Keycloak PKCE,
+> SQLite audit grants and systemd managed workers. The operator reported
+> 232 passing tests, live three-role authentication, provider-outage
+> rejection, session logout invalidation and a supervised synthetic job.
+> Release is **still blocked** by unresolved Keycloak OpenJDK advisories,
+> independent security review, hosted CI and deployment acceptance.
+> See [the completeness audit](PROJECT_COMPLETENESS_AUDIT.md).
+>
+
 Status: implementation is on `codex/architecture-and-jdbc-probe`, with PR #1 open. Issues 01–04 have their previously recorded operator/live and local acceptance evidence. Issue 05 now includes the explicit two-request CPU profile, finite phase contracts, smaller prompts and reserved brief time. Actual Ollama CPU inference passed with fixture data; the current combined Zetaris/Ollama/H-MEM check is BLOCKED at JDBC login, with failed receipts retained. No combined success or Issue 05 completion is claimed from fixture or scripted tests. See [CPU verification](CPU_VERIFICATION.md) and [agent loop](AGENT_LOOP.md). Worker, authenticated review API/UI and release evaluation slices remain planned.
 
 Use short feature branches and focused pull requests into `main`. Record each PR's behaviour, limitations and actual checks. If available on the account, configure the main branch to require CI and review; the architecture pack does not claim those protections exist.

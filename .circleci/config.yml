@@ -1,0 +1,50 @@
+version: 2.1
+
+# Synthetic-only, no GitHub Actions, Keycloak credentials or live health data.
+# CircleCI Free runs the jobs on its own hosted executors.
+jobs:
+  synthetic-verification:
+    parameters:
+      python-version:
+        type: string
+    docker:
+      - image: cimg/python:<< parameters.python-version >>-node
+    resource_class: small
+    environment:
+      PYTHONPATH: src:tests
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - checkout
+      - run:
+          name: Verify Python and Node.js 24
+          command: |
+            set -euo pipefail
+            python --version
+            node --version
+            python -c 'import sys; assert sys.version_info[:2] == tuple(map(int, "<< parameters.python-version >>".split("."))), "unexpected_python_version"'
+            node -e 'if (process.versions.node.split(".")[0] !== "24") { process.exitCode = 2; console.error("NODE_PREFLIGHT=BLOCKED_NODE_24_REQUIRED"); }'
+      - run:
+          name: Install optional identity test dependencies
+          command: |
+            set -euo pipefail
+            python -m pip install '.[identity]'
+            python -m pip check
+      - run:
+          name: Full synthetic identity, offline security and package verification
+          no_output_timeout: 10m
+          command: |
+            set -euo pipefail
+            python scripts/verify_identity_worker.py --fixtures
+      - run:
+          name: Source and documentation completeness
+          command: |
+            set -euo pipefail
+            python scripts/audit_project_completeness.py
+
+workflows:
+  synthetic-ci:
+    jobs:
+      - synthetic-verification:
+          matrix:
+            parameters:
+              python-version: ["3.12", "3.13", "3.14"]

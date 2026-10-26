@@ -1,5 +1,17 @@
 # Authenticated local review and supervised worker (development slice)
 
+> **Later milestone (25 October 2026):** This document describes the
+> original PR #2 local review slice. Draft PRs #3–#4 subsequently added
+> individual OIDC identities, a separate identity-review API, systemd
+> cgroup-managed workers and live Keycloak PKCE tests. The operator reported
+> 232 passing tests, three authenticated roles, role-controlled HTTP
+> permissions, a verified synthetic review audit, provider-outage
+> rejection and same-token post-logout denial. The old local bearer-token
+> review remains a development capability; it is not production identity.
+> Container security and independent review are **still blocked/pending**.
+> See [the completeness audit](PROJECT_COMPLETENESS_AUDIT.md).
+>
+
 This branch is based on PR #1 at `0fd52a1`. It does **not** merge PR #1,
 constitute deployment approval or validate the October 22 live receipt.
 It adds a loopback-only review surface and a separate child-process supervisor.
