@@ -38,6 +38,15 @@ def witness(raw):
 
 
 class SubmissionFreezeTests(unittest.TestCase):
+    def test_git_commit_hash_accepts_full_sha1_and_sha256(self):
+        # Git's standard rev-parse HEAD is a 40-character SHA-1 object ID.
+        self.assertTrue(MOD.valid_git_commit_sha("a" * 40))
+        self.assertTrue(MOD.valid_git_commit_sha("b" * 64))
+        for invalid in ("", "a" * 39, "a" * 41, "a" * 63,
+                        "a" * 65, "G" * 40, "abcdef0", None):
+            with self.subTest(invalid=invalid):
+                self.assertFalse(MOD.valid_git_commit_sha(invalid))
+
     def test_exact_integrated_digest_passes(self):
         raw = b"synthetic example receipt bytes"
         self.assertEqual(MOD.validate(witness(raw), raw,
