@@ -138,6 +138,29 @@ current checkout and Git ancestry, not rewriting the frozen source
 identity. The audit's `CIRCLECI_FROZEN_COMMIT=NOT_VERIFIED` status
 continues to require a separate commit-matched hosted CircleCI run.
 
+## Git commit SHA validation correction — 26 October 2026
+
+The operator's six freeze tests passed, but the first detailed freeze run
+reported `SUBMISSION_FREEZE_REASON=invalid_head_sha`. The original
+script accidentally validated `git rev-parse HEAD` against the
+**64-character SHA-256 receipt digest** pattern. This repository uses
+standard **40-character Git SHA-1 commit IDs**, so the check always
+blocked an otherwise valid HEAD. The source and integrated-receipt
+hashes use distinct formats and must never be conflated.
+
+The corrected verifier accepts full Git object identifiers of 40 or 64
+lowercase hexadecimal characters, rejects abbreviated/non-hex IDs,
+and retains the 64-character requirement for *receipt* digests.
+The pinned source revision, Git ancestry and clean-worktree checks
+remain unchanged. A new regression test covers both full Git formats
+and invalid examples. No Git history, evidence receipt, review event
+or security boundary was rewritten.
+
+Repeat `py_compile` and the now **seven** focused freeze tests,
+then rerun with a **new** output name. This commit fixes the diagnosed
+`invalid_head_sha` check; other audit gates remain real and may still
+need independent investigation.
+
 ## Exit criteria
 
 - [x] Frozen source commit identified.
