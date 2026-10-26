@@ -232,6 +232,17 @@ provided a recorded walkthrough, final submission acknowledgement or
 independent security approval. The separate focused witness-test
 summary was not included in this reported output.
 
+## Phase 1 frozen submission revision
+
+The [freeze and evidence record](HACKATHON_PHASE1_FREEZE.md) pins
+the source version to commit `80fbb9fd52c2ecc0b3f987e476e3908c6fbc4a71`
+and the integrated receipt digest to
+`3befe3839b2988398a30ffc786d8f4f4bc6a77274dc9be637aa6eb2e7a813af1`.
+The evidence-freeze audit is separate from production security and
+the historical CircleCI run, which executed an earlier commit.
+Do not claim the new freeze audit or commit-matched CI passed until
+operator execution confirms it.
+
 ## Submission and optional LinkedIn bonus
 
 Only include what was actually demonstrated. A credible demo can
