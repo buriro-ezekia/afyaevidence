@@ -14,3 +14,7 @@ bridge. Source SHA-256 hashes are pinned in `upstream.lock.json` and verified be
 launch. Upstream's optional development/test dependencies are not used or copied.
 Node 24's experimental TypeScript transform executes the original TypeScript
 without transpiling or rewriting upstream files. No npm runtime package is needed.
+
+## Bundled reference documentation
+
+The upstream `README.md` is preserved verbatim for provenance. Its links to `../AGENTS.md` and `../examples/`, and its example execution command, refer to the layout of the original Meterless source repository. Those parent-level specification and example files are not part of this pinned AfyaEvidence integration subset; the relative links therefore do not resolve here. This does not affect the pinned reference code or the verified Node 24 bridge. For AfyaEvidence setup and verification, use [the H-MEM bridge guide](../../docs/HMEM_BRIDGE.md) and the root project README instead of the upstream example commands.
