@@ -58,6 +58,9 @@ DOCUMENTS = ["README.md", "docs/IDENTITY_WORKER_IMPLEMENTATION.md",
              "tests/test_hackathon_demo.py",
              "scripts/prepare_hackathon_witness.py",
              "tests/test_hackathon_witness.py",
+             "scripts/audit_submission_freeze.py",
+             "tests/test_submission_freeze.py",
+             "docs/HACKATHON_PHASE1_FREEZE.md",
              "scripts/audit_security_evidence.py",
              "tests/test_security_evidence.py"]
 RELEASE_GATES = {
