@@ -100,6 +100,44 @@ These checks may increase the test count beyond the historical 319,
 because the new freeze auditor adds four tests. Only actual output
 can establish the updated PASS and verification directory.
 
+## Diagnostic follow-up — 26 October 2026
+
+The first operator attempt returned
+`SUBMISSION_FREEZE=BLOCKED_EVIDENCE_OR_WORKTREE`, without a reason
+because the initial audit collapsed all failures. The updated script
+now emits a constrained `SUBMISSION_FREEZE_REASON` code. It does not
+disclose private receipt contents, Git errors, passwords or tokens,
+and the source hash and review safeguards remain unchanged.
+
+Use a **new** report destination for each attempt:
+
+```bash
+cd "$HOME/afyaevidence-keycloak-live"
+git fetch origin
+git switch --detach origin/work/keycloak-live-acceptance
+source "$HOME/.venvs/afyaevidence-identity/bin/activate"
+export PYTHONPATH="$PWD/src"
+
+python -m py_compile scripts/audit_submission_freeze.py tests/test_submission_freeze.py
+python -m unittest discover -s tests -p 'test_submission_freeze.py' -v
+
+python scripts/audit_submission_freeze.py \\
+  --witness runtime/hackathon-witness-20261025.json \\
+  --integrated-receipt runtime/hackathon-integrated-20261025T175903Z.json \\
+  --output runtime/hackathon-phase1-freeze-diagnostic-20261026.json
+```
+
+If `SUBMISSION_FREEZE_REASON=tracked_worktree_not_clean`, inspect
+`git status --short`; do not discard changes or force-reset the worktree.
+If `output_already_exists`, choose a new report name. If a witness or
+receipt mismatch is reported, preserve both files and use
+`sha256sum` only to compare digests; never reconstruct or alter a
+historical successful receipt to force the audit to pass.
+A `frozen_commit_not_on_checkout` result requires examining the
+current checkout and Git ancestry, not rewriting the frozen source
+identity. The audit's `CIRCLECI_FROZEN_COMMIT=NOT_VERIFIED` status
+continues to require a separate commit-matched hosted CircleCI run.
+
 ## Exit criteria
 
 - [x] Frozen source commit identified.
