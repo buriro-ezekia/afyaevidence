@@ -26,9 +26,9 @@ The distinction matters. If an apparent increase comes from counting an older re
 **Project scope:** Synthetic malaria reporting investigations  
 **Source revision demonstrated:** [80fbb9f](https://github.com/buriro-ezekia/afyaevidence/tree/80fbb9fd52c2ecc0b3f987e476e3908c6fbc4a71)  
 **Development branch:** `work/keycloak-live-acceptance`  
-**Submission status:** Draft; no HackOS submission confirmation recorded.
+**Demonstration video:** [AfyaEvidence — Open Agent Hackathon 2026](https://youtu.be/h3Reux-_e7A) (illustrated walkthrough; not a recording of live service execution).
 
-The [judges' guide](docs/HACKATHON_JUDGES_GUIDE.md) provides a short walkthrough, architecture, sponsor-technology boundaries, verification evidence and limitations. For the exact source/receipt hashes and CI history, see the [Phase 1 freeze record](docs/HACKATHON_PHASE1_FREEZE.md).
+The [investigation and architecture guide](docs/HACKATHON_JUDGES_GUIDE.md) describes the workflow, its evidence boundaries and the demonstration. The [verification record](docs/HACKATHON_PHASE1_FREEZE.md) contains the source revisions and evidence hashes.
 
 ### How the sponsor technologies contribute
 
@@ -43,7 +43,7 @@ The successful integrated demonstration used Zetaris, Ollama and the pinned H-ME
 
 ## Demonstrated results
 
-Results below are based on the operator's local execution and CircleCI screenshot, not a production assessment.
+The following results describe local synthetic verification, hosted fixture testing and a separately observed integration exercise. They do not establish production or clinical readiness.
 
 | Check | Observed evidence |
 | --- | --- |
@@ -114,7 +114,7 @@ flowchart TD
 
 The host controls tool permissions, calculations and evidence references. A model cannot execute arbitrary SQL, edit reporting records, approve a candidate or turn historical memory into a current indicator.
 
-The [architecture and demonstration guide](docs/HACKATHON_JUDGES_GUIDE.md) explains the current implementation without relying on the older proposed architecture diagram.
+The [investigation guide](docs/HACKATHON_JUDGES_GUIDE.md) includes an example of the reporting-revision explanation and its limitations.
 
 ## Offline reading and security limits
 
@@ -137,18 +137,18 @@ The repository also contains experimental Keycloak-backed reviewer identity and 
 | `docs/` | Technical design, provenance, security and operator runbooks |
 | `.circleci/config.yml` | Hosted synthetic-only verification matrix |
 
-## Branch and contribution policy
+## Development and contribution
 
-The `main` branch currently contains the minimal repository starting point. The complete prototype sits on a **draft integration branch** because earlier feature and identity/security pull requests have not been merged. This does not mean that the working application is absent; it means the branch has not been promoted to the default branch.
+The working implementation is maintained on `work/keycloak-live-acceptance`. Earlier feature and identity changes remain under review and have not been merged into `main`. The demonstrated source revision is pinned above; later documentation updates should not be mistaken for the tested application revision.
 
-For the hackathon, use the pinned source link above and this branch's documentation. Any later promotion to `main` should follow a source, licence, sensitive-file and security review, then a deliberate merge. A successful hackathon demonstration is not a production release.
+Changes should preserve immutable reporting inputs, evidence provenance and reviewer authority. Tests must distinguish scripted fixtures from actual Zetaris, Ollama and H-MEM service interactions. Before a release is considered, source licensing, security findings and operational controls require separate review.
 
-All fictional data, code and results should be described accurately. Please use **UK English**, clear professional language and explicit distinctions between `PASS`, `BLOCKED` and `NOT_RUN` when contributing documentation or test evidence.
+Use professional UK English and report verification outcomes precisely, including checks that are blocked or have not been run.
 
 ## Further reading
 
 - [Judges' quick guide](docs/HACKATHON_JUDGES_GUIDE.md)
-- [Four-minute video production pack and narration](docs/HACKATHON_VIDEO_PRODUCTION.md)
+- [Demonstration video production notes](docs/HACKATHON_VIDEO_PRODUCTION.md)
 - [Phase 1 evidence freeze](docs/HACKATHON_PHASE1_FREEZE.md)
 - [Agent design and investigation controls](docs/AGENT_LOOP.md)
 - [Synthetic data and evaluation](docs/SYNTHETIC_DATA.md)
