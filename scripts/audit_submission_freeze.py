@@ -61,6 +61,12 @@ def validate(witness, receipt, *, expected_sha=INTEGRATED_SHA):
 def freeze(args):
     if args.output.exists() or args.output.is_symlink():
         raise ValueError("output_already_exists")
+    if not args.integrated_receipt.is_file():
+        raise ValueError("integrated_receipt_missing")
+    if not args.witness.is_file():
+        raise ValueError("witness_file_missing")
+    if args.integrated_receipt.is_symlink() or args.witness.is_symlink():
+        raise ValueError("evidence_symlink_refused")
     if args.integrated_receipt.stat().st_size > 4_000_000 or args.witness.stat().st_size > 100_000:
         raise ValueError("input_too_large")
     receipt = args.integrated_receipt.read_bytes()
@@ -129,8 +135,31 @@ def main():
     try:
         return freeze(args)
     except (OSError, ValueError, TypeError, KeyError, UnicodeError,
-            json.JSONDecodeError, subprocess.TimeoutExpired):
+            json.JSONDecodeError, subprocess.TimeoutExpired) as error:
+        # No raw Git stderr, receipt data, credentials or arbitrary paths.
+        # Only fixed, non-sensitive error codes are permitted on stdout.
+        reasons = {
+            "output_already_exists", "integrated_receipt_missing",
+            "witness_file_missing", "evidence_symlink_refused",
+            "input_too_large", "invalid_witness_schema",
+            "invalid_witness_body", "integrated_receipt_digest_mismatch",
+            "witness_claim_mismatch", "invalid_fixture_hash",
+            "git_state_unavailable", "invalid_head_sha",
+            "frozen_commit_not_on_checkout", "tracked_worktree_not_clean",
+        }
+        if isinstance(error, ValueError) and str(error) in reasons:
+            reason = str(error)
+        elif isinstance(error, json.JSONDecodeError):
+            reason = "invalid_witness_json"
+        elif isinstance(error, subprocess.TimeoutExpired):
+            reason = "git_command_timeout"
+        elif isinstance(error, OSError):
+            reason = "filesystem_access_error"
+        else:
+            reason = "unexpected_invalid_evidence"
         print("SUBMISSION_FREEZE=BLOCKED_EVIDENCE_OR_WORKTREE")
+        print("SUBMISSION_FREEZE_REASON=" + reason)
+        print("SUBMISSION_FREEZE_SOURCE_COMMIT=" + FROZEN_SOURCE_SHA)
         return 2
 
 
